@@ -10,7 +10,7 @@ help_info = [
     (('直播', '查房', '直播查询'), '直播查询\n功能：获取群友的直播间地址\n用法：直播/查房/直播查询 + 你要查询的群友常用id'),
     (('反馈', 'report'), '反馈\n功能：向绿反馈一些信息\n用法：反馈 + 你要反馈的内容'),
     (('占卜', 'tarot', '塔罗牌', '单张塔罗牌'), '塔罗牌\n功能：抽取单张塔罗牌，借以占卜每日运势\n注：同一天的结果是相同的，不必试图重抽\n用法：占卜/塔罗牌/单张塔罗牌/tarot'),
-    (('uno', 'UNO', 'Uno', '打牌'), '待补充')
+    (('uno', 'UNO', 'Uno', '打牌'), 'https://github.com/AntiLeaf/antileaf-nonebot/blob/main/uno_help.md')
 ]
 
 @on_command('help', aliases = ('帮助', 'Help'), only_to_me = False, permission = perm.GROUP)
