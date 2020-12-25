@@ -55,7 +55,7 @@ class Card:
     def check(self, o): # o 能否接在 self 后面
         if not self.value:
             return True
-        if not o.color and (o.value == '+4' or self.value != '+4'):
+        if not o.color:
             return True
         if o.color == self.color or o.value == self.value:
             return True
@@ -86,9 +86,9 @@ class Player:
         for c in v:
             s = color_tbl[c][4] + '：'
             if not v[c]:
-                s += ' ' + '无'
+                s = s + ' ' + '无'
             for t in sorted(v[c]):
-                s += ' ' + str(t)
+                s = s + ' ' + str(t)
 
             l.append(s)
         
@@ -180,7 +180,7 @@ class Game:
 
         s = '本局游戏排名：'
         for i in range(len(self.rank)):
-            s += '\n第%d名： ' % (i + 1) + message.MessageSegment.at(self.rank[i])
+            s = s + '\n第%d名： ' % (i + 1) + message.MessageSegment.at(self.rank[i])
         return s
     
 games = dict()
@@ -285,7 +285,7 @@ async def start_game(session):
     
     s = message.MessageSegment.text('游戏已开始！\n玩家列表：')
     for i in players[group_id]:
-        s += ' ' + message.MessageSegment.at(i)
+        s = s + ' ' + message.MessageSegment.at(i)
     await session.send(s)
 
     for i in players[group_id]:
@@ -302,7 +302,7 @@ async def start_game(session):
 
     games[group_id].next_player()
     
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
         + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
@@ -405,19 +405,19 @@ async def play(session):
     group_id = session.event.group_id
     
     if not user_id in in_game or in_game[user_id] != group_id:
-        await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+        await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
         return
 
     if not group_id in games:
-        await session.send(message.MessageSegment.at(user_id) + ' 没开始呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏尚未开始')
         return
 
     if games[group_id].tbl[user_id].stat == 'free':
-        await session.send(message.MessageSegment.at(user_id) + ' 没到你出牌呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 还没有轮到你出牌')
         return
     
     if games[group_id].tbl[user_id].stat != 'waiting to play':
-        await session.send(message.MessageSegment.at(user_id) + ' 别瞎输指令')
+        await session.send(message.MessageSegment.at(user_id) + ' 指令有误，请检查是否混用出/不出与是/否')
         return
     
     if not 'name' in session.state:
@@ -441,7 +441,7 @@ async def play(session):
         return
     
     if games[group_id].total_draw and (card.value != '+2' and card.value != '+4'):
-        await session.send(message.MessageSegment.at(user_id) + ' 现在罚牌呢，要不起就乖乖别出')
+        await session.send(message.MessageSegment.at(user_id) + ' 正在罚牌中，只能出+2或+4牌')
         return
 
     games[group_id].tbl[user_id].hand.remove(card)
@@ -450,7 +450,7 @@ async def play(session):
 
     s = message.MessageSegment.at(user_id) + ' 打出了：' + str(card)
 
-    await debug('color = %s  value = %s' % (card.color, card.value))
+    # await debug('color = %s  value = %s' % (card.color, card.value))
 
     t = games[group_id].tbl[user_id].print_hand()
     try:
@@ -510,7 +510,7 @@ async def play(session):
 
             return
         
-        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
             + str(games[group_id].last_card)
 
         if games[group_id].total_draw:
@@ -549,26 +549,26 @@ async def buchu(session):
     group_id = session.event.group_id
     
     if not user_id in in_game or in_game[user_id] != group_id:
-        await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+        await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
         return
 
     if not group_id in games:
-        await session.send(message.MessageSegment.at(user_id) + ' 没开始呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏尚未开始')
         return
 
     if games[group_id].tbl[user_id].stat == 'free':
-        await session.send(message.MessageSegment.at(user_id) + ' 没到你出牌呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 还没有轮到你出牌')
         return
     
     if games[group_id].tbl[user_id].stat != 'waiting to play':
-        await session.send(message.MessageSegment.at(user_id) + ' 别瞎输指令')
+        await session.send(message.MessageSegment.at(user_id) + ' 指令有误，请检查是否混用出/不出与是/否')
         return
 
     s = message.MessageSegment.at(user_id) + ' 选择不出牌，'
 
     v = games[group_id].draw(user_id, 1)
     if not v:
-        s += '牌堆已空，不再摸牌'
+        s = s + '牌堆已空，不再摸牌'
         await session.send(s)
         
         if games[group_id].total_draw:
@@ -591,7 +591,7 @@ async def buchu(session):
 
         games[group_id].next_player()
         
-        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
             + str(games[group_id].last_card)
 
         if games[group_id].total_draw:
@@ -603,7 +603,7 @@ async def buchu(session):
         await session.send(s)
         return
     
-    s += '并摸了一张牌'
+    s = s + '并摸了一张牌'
     await session.send(s)
 
     s = ' '.join(map(str, v))
@@ -636,15 +636,15 @@ async def choose_color(session):
     group_id = session.event.group_id
     
     if not user_id in in_game or in_game[user_id] != group_id:
-        await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+        await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
         return
 
     if not group_id in games:
-        await session.send(message.MessageSegment.at(user_id) + ' 没开始呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏尚未开始')
         return
     
     if games[group_id].tbl[user_id].stat != 'waiting to choose':
-        await session.send(message.MessageSegment.at(user_id) + ' 别瞎输指令')
+        await session.send(message.MessageSegment.at(user_id) + ' 指令有误，请检查是否混用出/不出与是/否')
         return
     
     if not 'color' in session.state:
@@ -666,7 +666,7 @@ async def choose_color(session):
             break
     
     if not color:
-        await session.send(message.MessageSegment.at(user_id) + ' 能不能给个阳间的颜色')
+        await session.send(message.MessageSegment.at(user_id) + ' 请在红绿蓝黄四种颜色中选择一个')
         return
     
     await session.send(message.MessageSegment.at(user_id) + ' 选择了%s色' % color)
@@ -694,7 +694,7 @@ async def choose_color(session):
 
         return
 
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
         + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
@@ -729,25 +729,25 @@ async def shi(session):
     group_id = session.event.group_id
     
     if not user_id in in_game or in_game[user_id] != group_id:
-        await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+        await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
         return
 
     if not group_id in games:
-        await session.send(message.MessageSegment.at(user_id) + ' 没开始呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏尚未开始')
         return
     
     if games[group_id].tbl[user_id].stat != 'waiting to confirm':
-        await session.send(message.MessageSegment.at(user_id) + ' 别瞎输指令')
+        await session.send(message.MessageSegment.at(user_id) + ' 指令有误，请检查是否混用出/不出与是/否')
         return
     
     card = games[group_id].tbl[user_id].hand[-1]
 
     if not games[group_id].last_card.check(card):
-        await session.send(message.MessageSegment.at(user_id) + ' 这牌跟不了，做梦呢你')
+        await session.send(message.MessageSegment.at(user_id) + ' 这张牌跟不了，下次记得直接\"否\"')
         return
     
     if games[group_id].total_draw and card.value != '+2' and card.value != '+4':
-        await session.send(message.MessageSegment.at(user_id) + ' 现在罚牌呢，要不起就乖乖别出')
+        await session.send(message.MessageSegment.at(user_id) + ' 正在罚牌中，只能出+2或+4牌')
         return
 
     games[group_id].tbl[user_id].hand.remove(card)
@@ -765,29 +765,34 @@ async def shi(session):
 
     s = ''
 
-    if card.value == '跳过':
+    if card.value == '跳过':    
         games[group_id].skipped = True
-        s += '，下家的回合被跳过了'
+        s = s + '，下家的回合被跳过了'
     elif card.value == '反转':
         games[group_id].direction *= -1
-        s += '，出牌方向变为按' + ('顺' if games[group_id].direction == 1 else '逆') + '序出牌'
+        s = s + '，出牌方向变为按' + ('顺' if games[group_id].direction == 1 else '逆') + '序出牌'
 
     games[group_id].last_card = card
     if card.value == '+2' or card.value == '+4':
         games[group_id].total_draw += (2 if card.value == '+2' else 4)
-            
-    games[group_id].next_player()
     
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
-        + str(games[group_id].last_card)
+    if not card.color:
+        games[group_id].tbl[user_id].stat = 'waiting to choose'
+        await session.send('请选择一种颜色\n\"选择\" + 你想选的颜色')
 
-    if games[group_id].total_draw:
-        s = s + '，已累计罚牌%d张' % games[group_id].total_draw
+    else:
+        games[group_id].next_player()
+        
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
+            + str(games[group_id].last_card)
 
-    s = s + '，牌堆中还剩%d张牌' % len(games[group_id].deck) \
-        + '\n\"出\" + 你要出的牌出牌，\"不出\"摸一张牌'
+        if games[group_id].total_draw:
+            s = s + '，已累计罚牌%d张' % games[group_id].total_draw
 
-    await session.send(s)
+        s = s + '，牌堆中还剩%d张牌' % len(games[group_id].deck) \
+            + '\n\"出\" + 你要出的牌出牌，\"不出\"摸一张牌'
+
+        await session.send(s)
 
 @on_command('否', aliases = ('fou', 'f'), only_to_me = False, permission = perm.GROUP)
 async def fou(session):
@@ -803,15 +808,15 @@ async def fou(session):
     group_id = session.event.group_id
     
     if not user_id in in_game or in_game[user_id] != group_id:
-        await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+        await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
         return
 
     if not group_id in games:
-        await session.send(message.MessageSegment.at(user_id) + ' 没开始呢，急什么')
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏尚未开始')
         return
     
     if games[group_id].tbl[user_id].stat != 'waiting to confirm':
-        await session.send(message.MessageSegment.at(user_id) + ' 别瞎输指令')
+        await session.send(message.MessageSegment.at(user_id) + ' 指令有误，请检查是否混用出/不出与是/否')
         return
     
     if games[group_id].total_draw:
@@ -833,7 +838,7 @@ async def fou(session):
 
     games[group_id].next_player()
     
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，最后一张牌是：' \
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
         + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
@@ -864,13 +869,13 @@ async def query_stat(session):
         else:
             s = s + '正在等待的人有：'
             for i in players[group_id]:
-                s += ' ' + message.MessageSegment.at(i)
+                s = s + ' ' + message.MessageSegment.at(i)
         
         await session.send(s)
         return
     
     # if not user_id in in_game or in_game[user_id] != group_id:
-    #    await session.send(message.MessageSegment.at(user_id) + ' 这群打牌的没你，一边待着去')
+    #    await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
     #    return
     
     s = message.MessageSegment.text('UNO已开始，以下是所有玩家当前的手牌数或排名：')
