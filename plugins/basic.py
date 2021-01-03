@@ -4,7 +4,7 @@ import nonebot
 from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
 
-import random
+import random, ast
 
 bot = nonebot.get_bot()
 
@@ -105,3 +105,50 @@ async def report_parser(session):
         session.state['text'] = s
 
 # 直播查询到此结束
+
+evaluate_on = False
+
+@on_command('open', aliases = ('enable'), permission = perm.SUPERUSER)
+async def open(session):
+    global evaluate_on
+    evaluate_on = True
+    await session.send('Python功能已打开')
+
+@on_command('close', aliases = ('disable'), permission = perm.SUPERUSER)
+async def close(session):
+    global evaluate_on
+    evaluate_on = False
+    await session.send('Python功能已关闭')
+
+@on_command('eval', aliases = ('evaluate'), only_to_me = False, permission = perm.GROUP)
+async def evaluate(session):
+    user_id = int(session.event['user_id'])
+    group_id = session.event.group_id
+
+    if not evaluate_on:
+        if group_id:
+            await session.send(message.MessageSegment.at(user_id) + ' Python功能未开启')
+        else:
+            await session.send('Python功能未开启')
+        
+        return
+
+    s = ''
+
+    if 'command' in session.state:
+        try:
+            s = str(eval(session.state['command']))
+        except Exception:
+            s = '发生错误'
+    
+    else:
+        s = '用法：eval + 想求值的表达式或想运行的语句'
+    
+    if group_id:
+        await session.send(message.MessageSegment.at(user_id) + ' ' + s)
+    else:
+        await session.send(s)
+
+@evaluate.args_parser
+async def evaluate_parser(session):
+    session.state['command'] = ' '.join(session.current_arg_text.split())

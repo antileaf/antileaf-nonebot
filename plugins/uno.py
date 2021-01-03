@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+'''
 import nonebot
 from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
@@ -202,6 +203,10 @@ async def join_game(session):
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
 
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
+
     if group_id in games:
         await session.send(message.MessageSegment.at(user_id) + ' 游戏已开始，无法加入')
         return
@@ -234,6 +239,10 @@ async def leave_game(session):
     
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not group_id in players or not user_id in players[group_id]:
         await session.send(message.MessageSegment.at(user_id) + ' 未加入游戏，无法退出')
@@ -264,6 +273,10 @@ async def start_game(session):
     
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     # if user_id != 1094054222:
     #    await session.send(message.MessageSegment.at(user_id) + ' 只有绿可以使用此功能')
@@ -301,9 +314,9 @@ async def start_game(session):
     await session.send('第一张牌：%s\n即将从第一位玩家开始出牌……' % str(games[group_id].last_card))
 
     games[group_id].next_player()
-    
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-        + str(games[group_id].last_card)
+        
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+        % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
         s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -323,6 +336,10 @@ async def end_game(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
 
     if user_id != 1094054222:
         await session.send(message.MessageSegment.at(user_id) + '只有绿可以使用此功能')
@@ -346,6 +363,39 @@ async def end_game(session):
     games.pop(group_id)
     players.pop(group_id)
 
+
+@on_command('清空', aliases = ('清空玩家', 'clear', 'qk', 'qingkong'), only_to_me = False, permission = perm.GROUP)
+async def clear_players(session):
+
+    global games, in_game, players
+    
+    if not session.event.group_id:
+        await session.send('请在群聊中使用UNO功能')
+        return
+        
+    user_id = int(session.event['user_id'])
+    group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
+
+    if user_id != 1094054222:
+        await session.send(message.MessageSegment.at(user_id) + '只有绿可以使用此功能')
+        return
+
+    if group_id in games:
+        await session.send(message.MessageSegment.at(user_id) + ' 游戏已开始')
+        return
+
+    await session.send('等待列表已清空')
+
+    if group_id in players:
+        for i in players[group_id]:
+            in_game.pop(i)
+        players.pop(group_id)   
+
+
 @on_command('放弃', aliases = ('弃牌', 'fangqi', 'fq', 'qp', 'giveup'), only_to_me = False, permission = perm.GROUP)
 async def give_up(session):
 
@@ -357,6 +407,10 @@ async def give_up(session):
     
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not group_id in games or not user_id in players[group_id]:
         await session.send(message.MessageSegment.at(user_id) + ' 未加入游戏或游戏未开始，无法放弃')
@@ -403,6 +457,10 @@ async def play(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not user_id in in_game or in_game[user_id] != group_id:
         await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
@@ -510,8 +568,8 @@ async def play(session):
 
             return
         
-        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-            + str(games[group_id].last_card)
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+            % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
         if games[group_id].total_draw:
             s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -536,7 +594,7 @@ async def play_parser(session):
             session.state['name'] = v[0]
 
 
-@on_command('不出', aliases = ('pass', '摸牌', 'buchu', 'bc'), only_to_me = False, permission = perm.GROUP)
+@on_command('不出', aliases = ('pass', '摸牌', 'buchu', 'bc', '过'), only_to_me = False, permission = perm.GROUP)
 async def buchu(session):
 
     global games, in_game, players
@@ -547,6 +605,10 @@ async def buchu(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not user_id in in_game or in_game[user_id] != group_id:
         await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
@@ -591,8 +653,8 @@ async def buchu(session):
 
         games[group_id].next_player()
         
-        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-            + str(games[group_id].last_card)
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+            % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
         if games[group_id].total_draw:
             s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -634,6 +696,10 @@ async def choose_color(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not user_id in in_game or in_game[user_id] != group_id:
         await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
@@ -693,9 +759,9 @@ async def choose_color(session):
         players.pop(group_id)
 
         return
-
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-        + str(games[group_id].last_card)
+        
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+        % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
         s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -727,6 +793,10 @@ async def shi(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not user_id in in_game or in_game[user_id] != group_id:
         await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
@@ -783,8 +853,8 @@ async def shi(session):
     else:
         games[group_id].next_player()
         
-        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-            + str(games[group_id].last_card)
+        s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+            % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
         if games[group_id].total_draw:
             s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -806,6 +876,10 @@ async def fou(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
     
     if not user_id in in_game or in_game[user_id] != group_id:
         await session.send(message.MessageSegment.at(user_id) + ' 你没有加入当前游戏')
@@ -837,9 +911,9 @@ async def fou(session):
         games[group_id].total_draw = 0
 
     games[group_id].next_player()
-    
-    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' % len(games[group_id].tbl[user_id].hand) \
-        + str(games[group_id].last_card)
+        
+    s = '轮到 ' + message.MessageSegment.at(games[group_id].current_player) + ' 出牌，当前手牌数为：%d张，最后一张牌是：' \
+        % len(games[group_id].tbl[games[group_id].current_player].hand) + str(games[group_id].last_card)
 
     if games[group_id].total_draw:
         s = s + '，已累计罚牌%d张' % games[group_id].total_draw
@@ -861,6 +935,10 @@ async def query_stat(session):
         
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
+
+    if user_id == 80000000:
+        await session.send(message.MessageSegment.text('请解除匿名后再使用UNO功能'))
+        return
 
     if not group_id in games:
         s = 'UNO未开始，目前'
@@ -919,3 +997,4 @@ async def query_hand(session):
     s = games[in_game[user_id]].tbl[user_id].print_hand()
     await session.send(s)
     return
+'''

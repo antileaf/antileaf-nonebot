@@ -5,12 +5,13 @@ from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
 
 help_info = [
-    (('all'), '可用帮助：帮助 直播 反馈 占卜 uno'),
+    (('all'), '可用帮助：帮助 直播 反馈 占卜 斗地主'),
     (('帮助', 'help'), '帮助\n功能：获取全部或者某个指令的用法\n用法：帮助/help 或 帮助/help + 你要查询的指令'),
     (('直播', '查房', '直播查询'), '直播查询\n功能：获取群友的直播间地址\n用法：直播/查房/直播查询 + 你要查询的群友常用id'),
     (('反馈', 'report'), '反馈\n功能：向绿反馈一些信息\n用法：反馈 + 你要反馈的内容'),
     (('占卜', 'tarot', '塔罗牌', '单张塔罗牌'), '塔罗牌\n功能：抽取单张塔罗牌，借以占卜每日运势\n注：同一天的结果是相同的，不必试图重抽\n用法：占卜/塔罗牌/单张塔罗牌/tarot'),
-    (('uno', 'UNO', 'Uno', '打牌'), 'https://github.com/AntiLeaf/antileaf-nonebot/blob/main/uno_help.md')
+    (('uno', 'UNO', 'Uno'), 'https://github.com/AntiLeaf/antileaf-nonebot/blob/main/uno_help.md\nUNO功能已暂时停用，欢迎尝试斗地主功能'),
+    (('斗地主', 'ddz', 'doudizhu', '打牌'), 'https://github.com/AntiLeaf/antileaf-nonebot/blob/main/doudizhu_help.md')
 ]
 
 @on_command('help', aliases = ('帮助', 'Help'), only_to_me = False, permission = perm.GROUP)
