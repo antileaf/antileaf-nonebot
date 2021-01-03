@@ -543,7 +543,7 @@ async def qiangdizhu(session):
         g.state = 'started'
 
         await session.send('请地主 ' + message.MessageSegment.at(dizhu) + ' 开始出牌')
-        g.cur_player = dizhu
+        g.cur_player = g.last_player = dizhu
         g.cur = g.players.index(dizhu)
 
         return
@@ -589,11 +589,11 @@ async def buqiang(session):
 
     await send_group_message(session, '选择不抢地主')
 
-    dizhu = g.last_player
+    dizhu = g.players[(g.players.index(user_id) - 1) % 3]
 
     g.tbl[dizhu].type = '地主'
     for i in g.tbl:
-        if not g.tbl[i].type:
+        if i != dizhu:
             g.tbl[i].type = '农民'
     
     await session.send(message.MessageSegment.at(dizhu) + ' 成为了地主！\n底牌是：' + ' '.join(map(completed, list(g.deck))))
@@ -604,7 +604,7 @@ async def buqiang(session):
     g.state = 'started'
 
     await session.send('请地主 ' + message.MessageSegment.at(dizhu) + ' 开始出牌')
-    g.cur_player = dizhu
+    g.cur_player = g.last_player = dizhu
     g.cur = g.players.index(dizhu)
 
 
