@@ -156,8 +156,6 @@ def handle(s : str): # 返回处理好的一手牌，或者'error'
             s = ''.join(list(s)[2:] + list(s)[:2])
         if s[0] == s[1] and s[1] == s[2] and s[2] == s[3]:
             return Combination(s[0], s[4] + s[5], 'quadruple2')
-        elif s[0] == s[1] and s[1] == s[2] and s[3] == s[4] and s[4] == s[5]:
-            return Combination(s[0] + s[3], '', '2triple')
         
     if s in '34567891JQKA' and len(s) >= 5:
         return Combination(s, '', 'serial')
@@ -169,9 +167,10 @@ def handle(s : str): # 返回处理好的一手牌，或者'error'
     v = [0] * len('34567891JQKA2鬼王')
     for c in s:
         v['34567891JQKA2鬼王'.find(c)] += 1
-    d = [[]] * 54
+    d = [[] for i in range(54)]
     for i in range(len(v)):
         d[v[i]].append('34567891JQKA2鬼王'[i])
+
     if len(d[3]) >= 2:
         k = ''.join(d[3])
         if not k in '34567891JQKA':
