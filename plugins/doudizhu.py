@@ -8,12 +8,14 @@ import random, math
 
 mmr_tbl = dict() # (user_id, (name, score))
 mmr_file = 'mmr.txt'
+tmp_tbl = set()
+tmp_file = 'tmp.txt'
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 def calc(x):
-    return sigmoid(x / 200) * 2 + 1
+    return sigmoid(x / 550) * 2 + 1
 
 def read_mmr():
     global mmr_tbl
@@ -35,6 +37,28 @@ def save_mmr():
     
     for i in mmr_tbl:
         f.write(' '.join([str(i), mmr_tbl[i][0], str(mmr_tbl[i][1])]) + '\n')
+
+    f.close()
+
+def read_tmp():
+    global tmp_tbl
+    try:
+        f = open(tmp_file, 'rt')
+
+        tmp_tbl = set()
+        for s in f.readlines():
+            if s:
+                tmp_tbl.add(int(s))
+
+        f.close()
+    except:
+        pass
+
+def save_tmp():
+    f = open(tmp_file, 'wt')
+    
+    for i in tmp_tbl:
+        f.write(str(i) + '\n')
 
     f.close()
 
@@ -393,7 +417,7 @@ async def zhuce(session):
         return
     
     if not user_id in mmr_tbl:
-        mmr_tbl[user_id] = (str(user_id), 1000)
+        mmr_tbl[user_id] = (str(user_id), 2000)
 
     mmr_tbl[user_id] = (session.state['name'], mmr_tbl[user_id][1])
     save_mmr()
@@ -419,7 +443,7 @@ async def chaxun(session):
         return
     
     if not user_id in mmr_tbl:
-        mmr_tbl[user_id] = (str(user_id), 1000)
+        mmr_tbl[user_id] = (str(user_id), 2000)
         save_mmr()
     
     s = ('你' if mmr_tbl[user_id][0] == str(user_id) else mmr_tbl[user_id][0]) + '的MMR：' + str(mmr_tbl[user_id][1])
@@ -442,6 +466,7 @@ async def gengxin(session):
         return
 
     read_mmr()
+    read_tmp()
 
     if group_id:
         await send_group_message(session, '更新成功')
@@ -449,12 +474,83 @@ async def gengxin(session):
         await session.send('更新成功')
 
 
+@on_command('修改', aliases = ('change','modify'), only_to_me = False, permission = perm.GROUP)
+async def xiugai(session):
+    global mmr_tbl
+
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+
+    if user_id != 1094054222:
+        await send_group_message(session, '只有绿可以使用此功能', at = (user_id != 80000000))
+        return
+
+    if not 'name' in session.state:
+        return
+    
+    if not 'value' in session.state:
+        session.state['value'] = 2000
+
+    ok = False
+
+    for i in mmr_tbl:
+        if mmr_tbl[i][0] == session.state['name'] or str(i) == session.state['name']:
+            mmr_tbl[i] = (mmr_tbl[i][0], session.state['value'])
+            save_mmr()
+            ok = True
+            break
+
+    if ok:
+        if group_id:
+            await send_group_message(session, '修改成功')
+        else:
+            await session.send('修改成功')
+    else:
+        if group_id:
+            await send_group_message(session, '未找到对应用户')
+        else:
+            await session.send('未找到对应用户')
+
+@xiugai.args_parser
+async def xiugai_parser(session):
+    v = session.current_arg_text.split()
+    if len(v) == 2:
+        session.state['name'] = v[0]
+        try:
+            session.state['value'] = int(v[1])
+        except:
+            pass
+
+
+@on_command('重置', aliases = ('clear'), only_to_me = False, permission = perm.GROUP)
+async def chongzhi(session):
+    global mmr_tbl
+
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+
+    if user_id != 1094054222:
+        await send_group_message(session, '只有绿可以使用此功能', at = (user_id != 80000000))
+        return
+
+    for i in mmr_tbl:
+        mmr_tbl[i] = (mmr_tbl[i][0], 2000)
+    save_mmr()
+
+    if group_id:
+        await send_group_message(session, '重置成功')
+    else:
+        await session.send('重置成功')
+
+
 @on_command('排行榜', aliases = ('ranklist', 'rank', '排名', '榜', 'ph'), only_to_me = False, permission = perm.GROUP)
 async def paihangbang(session):
-    global mmr_tbl
+    global mmr_tbl, tmp_tbl
 
     if not mmr_tbl:
         read_mmr()
+    if not tmp_tbl:
+        read_tmp()
     
     group_id = session.event.group_id
     user_id = session.event.user_id
@@ -463,10 +559,19 @@ async def paihangbang(session):
         await send_group_message(session, '请解除匿名后再查询', at = False)
         return
     
-    v = [mmr_tbl[i] for i in mmr_tbl]
-    v.sort(key = lambda x : -x[1])
+    v = []
+    for i in mmr_tbl:
+        if mmr_tbl[i][1] != 2000:
+            tmp_tbl.add(i)
+        if mmr_tbl[i][1] != 2000 or i in tmp_tbl:
+            v.append((mmr_tbl[i], i))
+    v.sort(key = lambda x : -x[0][1])
 
-    s = '排行榜：\n' + '\n'.join([str(v.index(o) + 1) + '. ' + o[0] + '：' + str(o[1]) for o in v])
+    s = '排行榜：'
+    for o in v:
+        s = s + '\n' + str(v.index(o) + 1) + '. ' + o[0][0] + '(%d)：' % o[1] + str(o[0][1])
+    
+    save_tmp()
 
     if group_id:
         await send_group_message(session, s)
@@ -519,7 +624,7 @@ async def jiaru(session):
     g.players.append(user_id)
 
     if not user_id in mmr_tbl:
-        mmr_tbl[user_id] = (str(user_id), 1000)
+        mmr_tbl[user_id] = (str(user_id), 2000)
         save_mmr()
 
     s = '加入成功，当前共有%d人\n为正常进行游戏，请加bot为好友' % len(g.players)
@@ -768,7 +873,7 @@ async def buqiang(session):
 
 @on_command('出', aliases = ('出牌', 'chu', 'c'), only_to_me = False, permission = perm.GROUP)
 async def chu(session):
-    global mmr_tbl
+    global mmr_tbl, tmp_tbl
 
     group_id = session.event.group_id
     user_id = session.event.user_id
@@ -859,7 +964,7 @@ async def chu(session):
         ave /= 3
         delta = dict()
 
-        g.score = int(math.log2(g.score / 10) + 2) * 20
+        g.score = int(math.log2(g.score / 10) + 4) * 10
 
         for i in g.players:
             delta[i] = g.score
@@ -871,7 +976,7 @@ async def chu(session):
             else:
                 delta[i] *= -calc(mmr_tbl[i][1] - ave)
 
-            delta[i] = int(delta[i]) + 15 # 赢得多了会有奖励分
+            delta[i] = int(delta[i]) + 15 # 奖励分
 
         s = '以下是各位玩家的MMR升降情况：'
 
@@ -881,6 +986,12 @@ async def chu(session):
         
         for i in g.players:
             mmr_tbl[i] = (mmr_tbl[i][0], mmr_tbl[i][1] + delta[i])
+        
+        if not tmp_tbl:
+            read_tmp()
+        for i in g.players:
+            tmp_tbl.add(i)
+        save_tmp()
 
         await session.send(s)
 
@@ -892,7 +1003,7 @@ async def chu(session):
         return
 
     
-    await session.send(g.tbl[user_id].type + ' ' + message.MessageSegment.at(user_id) + ' 打出了：' + completed(str(v)) + '，还剩%d张牌' % len(g.tbl[user_id].hand)) + t
+    await session.send(g.tbl[user_id].type + ' ' + message.MessageSegment.at(user_id) + ' 打出了：' + completed(str(v)) + '，还剩%d张牌' % len(g.tbl[user_id].hand) + t)
 
     await send_private_message(user_id, g.tbl[user_id].get_hand())
 
