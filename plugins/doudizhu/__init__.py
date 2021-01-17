@@ -6,16 +6,18 @@ from nonebot import permission as perm
 
 import random, math
 
+from .statistics import add, query, clear
+
 mmr_tbl = dict() # (user_id, (name, score))
-mmr_file = 'mmr.txt'
+mmr_file = 'temp/mmr.txt'
 tmp_tbl = set()
-tmp_file = 'tmp.txt'
+tmp_file = 'temp/mmr_tmp.txt'
 
 def sigmoid(x):
     return 1 / (1 + math.exp(-x))
 
 def calc(x):
-    return sigmoid(x / 550) * 2 + 1
+    return sigmoid(x / 500) * 2 + 1
 
 def read_mmr():
     global mmr_tbl
@@ -260,7 +262,7 @@ class Player:
     def __init__(self):
         self.hand = ''
         self.type = '未知'
-        self.state = ''
+        self.bujiao = False
     
     def check(self, s):
         t = self.hand[:]
@@ -427,8 +429,14 @@ async def zhuce(session):
     else:
         await session.send('注册成功')
 
+@zhuce.args_parser
+async def zhuce_parser(session):
+    v = session.current_arg_text.split()
+    if len(v) == 1:
+        session.state['name'] = v[0]
 
-@on_command('查询', aliases = ('查询分数', 'mmr', 'MMR', '我的分数', 'cx'), only_to_me = False, permission = perm.GROUP)
+
+@on_command('查询', aliases = ('查询分数', 'mmr', 'MMR', '我的分数', 'cx', '我的数据'), only_to_me = False, permission = perm.GROUP)
 async def chaxun(session):
     global mmr_tbl
 
@@ -442,17 +450,38 @@ async def chaxun(session):
         await send_group_message(session, '请解除匿名后再查询', at = False)
         return
     
-    if not user_id in mmr_tbl:
-        mmr_tbl[user_id] = (str(user_id), 2000)
+    u = 0
+    if 'name' in session.state:
+        for i in mmr_tbl:
+            if mmr_tbl[i][0] == session.state['name'] or str(i) == session.state['name']:
+                u = i
+                break
+    else:
+        u = user_id
+    
+    if not u in mmr_tbl:
+        mmr_tbl[u] = (str(u), 2000)
         save_mmr()
     
-    s = ('你' if mmr_tbl[user_id][0] == str(user_id) else mmr_tbl[user_id][0]) + '的MMR：' + str(mmr_tbl[user_id][1])
+    s = mmr_tbl[u][0] + '的MMR：' + str(mmr_tbl[u][1])
+    
+    t = query(u)
+    if t:
+        s = s + '\n' + t
+    else:
+        s = s + '\n' + '本赛季没有游戏记录'
 
     if group_id:
         await send_group_message(session, s)
     else:
         await session.send(s)
-    
+
+@chaxun.args_parser
+async def chaxun_parser(session):
+    v = session.current_arg_text.split()
+    if len(v) == 1:
+        session.state['name'] = v[0]
+
 
 @on_command('更新', aliases = ('refresh', 'update', 'upd'), only_to_me = False, permission = perm.GROUP)
 async def gengxin(session):
@@ -536,6 +565,10 @@ async def chongzhi(session):
     for i in mmr_tbl:
         mmr_tbl[i] = (mmr_tbl[i][0], 2000)
     save_mmr()
+    tmp_tbl.clear()
+    save_tmp()
+
+    clear()
 
     if group_id:
         await send_group_message(session, '重置成功')
@@ -577,13 +610,6 @@ async def paihangbang(session):
         await send_group_message(session, s)
     else:
         await session.send(s)
-
-
-@zhuce.args_parser
-async def zhuce_parser(session):
-    v = session.current_arg_text.split()
-    if len(v) == 1:
-        session.state['name'] = v[0]
 
 
 @on_command('加入游戏', aliases = ('加入', 'jr', '上桌', 'sz'), only_to_me = False, permission = perm.GROUP)
@@ -666,7 +692,7 @@ async def tuichu(session):
         games.pop(group_id)
 
 
-@on_command('叫地主', aliases = ('叫', 'j'), only_to_me = False, permission = perm.GROUP)
+@on_command('叫地主', aliases = ('叫', 'j', 'jdz'), only_to_me = False, permission = perm.GROUP)
 async def jiaodizhu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
@@ -702,6 +728,7 @@ async def jiaodizhu(session):
     
     await send_group_message(session, '选择叫地主')
     g.last_player = g.cur_player
+    # g.tbl[g.cur_player].bujiao = True
     g.state = 'qdz'
     g.next_player()
     await session.send('请 ' + message.MessageSegment.at(g.cur_player) + ' 选择是否抢地主')
@@ -740,6 +767,7 @@ async def bujiao(session):
         await send_group_message(session, '还没有轮到你叫地主')
         return
 
+    g.tbl[user_id].bujiao = True
     await send_group_message(session, '选择不叫地主')
     g.next_player()
 
@@ -789,8 +817,14 @@ async def qiangdizhu(session):
     g.score *= 2
 
     await send_group_message(session, '选择抢地主，分数翻倍\n当前分数：' + str(g.score))
+    g.tbl[user_id].bujiao = True
+    g.last_player = user_id
 
-    if g.cur_player == g.last_player:
+    ok = True
+    for i in g.players:
+        if not g.tbl[i].bujiao:
+            ok = False
+    if ok:
         dizhu = g.last_player
 
         g.tbl[dizhu].type = '地主'
@@ -812,6 +846,8 @@ async def qiangdizhu(session):
         return
 
     g.next_player()
+    while g.tbl[g.cur_player].bujiao:
+        g.next_player()
 
     await session.send('请 ' + message.MessageSegment.at(g.cur_player) + ' 选择是否抢地主')
 
@@ -851,24 +887,38 @@ async def buqiang(session):
         return
 
     await send_group_message(session, '选择不抢地主')
+    g.tbl[user_id].bujiao = True
 
-    dizhu = g.players[(g.players.index(user_id) - 1) % 3]
+    ok = True
+    for i in g.players:
+        if not g.tbl[i].bujiao:
+            ok = False
+    if ok:
+        dizhu = g.last_player
 
-    g.tbl[dizhu].type = '地主'
-    for i in g.tbl:
-        if i != dizhu:
-            g.tbl[i].type = '农民'
-    
-    await session.send(message.MessageSegment.at(dizhu) + ' 成为了地主！\n底牌是：' + ' '.join(map(completed, list(g.deck))))
-    g.tbl[dizhu].join(g.deck)
-    await send_private_message(dizhu, g.tbl[dizhu].get_hand())
-    # g.deck = ''
+        g.tbl[dizhu].type = '地主'
+        for i in g.tbl:
+            if i != dizhu:
+                g.tbl[i].type = '农民'
+        
+        await session.send(message.MessageSegment.at(dizhu) + ' 成为了地主！\n底牌是：' + ' '.join(map(completed, list(g.deck))))
+        g.tbl[dizhu].join(g.deck)
+        await send_private_message(dizhu, g.tbl[dizhu].get_hand())
+        # g.deck = ''
 
-    g.state = 'started'
+        g.state = 'started'
 
-    await session.send('请地主 ' + message.MessageSegment.at(dizhu) + ' 开始出牌')
-    g.cur_player = g.last_player = dizhu
-    g.cur = g.players.index(dizhu)
+        await session.send('请地主 ' + message.MessageSegment.at(dizhu) + ' 开始出牌')
+        g.cur_player = g.last_player = dizhu
+        g.cur = g.players.index(dizhu)
+
+        return
+
+    g.next_player()
+    while g.tbl[g.cur_player].bujiao:
+        g.next_player()
+
+    await session.send('请 ' + message.MessageSegment.at(g.cur_player) + ' 选择是否抢地主')
 
 
 @on_command('出', aliases = ('出牌', 'chu', 'c'), only_to_me = False, permission = perm.GROUP)
@@ -964,7 +1014,7 @@ async def chu(session):
         ave /= 3
         delta = dict()
 
-        g.score = int(math.log2(g.score / 10) + 4) * 10
+        g.score = int((math.log2(g.score / 10) + 3) * 40 / 3)
 
         for i in g.players:
             delta[i] = g.score
@@ -986,6 +1036,9 @@ async def chu(session):
         
         for i in g.players:
             mmr_tbl[i] = (mmr_tbl[i][0], mmr_tbl[i][1] + delta[i])
+        
+        for i in g.players:
+            add(i, (g.tbl[i].type == '地主'), (g.tbl[i].type == g.tbl[user_id].type))
         
         if not tmp_tbl:
             read_tmp()
@@ -1023,7 +1076,7 @@ async def chu_parser(session):
     if len(v) == 1:
         session.state['text'] = v[0].upper()
 
-@on_command('过', aliases = ('pass', '不出', 'g', 'bc', 'p'), only_to_me = False, permission = perm.GROUP)
+@on_command('过', aliases = ('pass', '不出', 'g', 'bc', 'p', 'by', '不要', 'ybq', '要不起'), only_to_me = False, permission = perm.GROUP)
 async def buchu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id

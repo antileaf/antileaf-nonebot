@@ -8,6 +8,10 @@ import random, ast
 
 bot = nonebot.get_bot()
 
+@nonebot.on_request('friend')
+async def auto_add_friend(session: nonebot.RequestSession):
+    await session.approve()
+
 # 以下是对话内容
 
 @on_command('爬', aliases = ("爬", "给爷爬", "爪巴", "给爷爪巴"), only_to_me = False, permission = perm.GROUP)
@@ -80,7 +84,7 @@ async def live_number_parser(session : CommandSession):
     if len(a) == 1:
         session.state['name'] = a[0]
 
-@on_command('report', aliases = ('反馈'), only_to_me = False, permission = perm.GROUP)
+@on_command('report', aliases = ('反馈', 'issue'), only_to_me = False, permission = perm.GROUP)
 async def report(session):
     user_id = int(session.event['user_id'])
     if 'text' in session.state:

@@ -1,0 +1,2 @@
+def goo():
+    return 'goo'

@@ -6,4 +6,4 @@ from nonebot import permission as perm
 
 # @on_notice('add_friend')
 # async def add_friend(session : NoticeSession):
-#    
+#    pass
