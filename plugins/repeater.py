@@ -21,7 +21,8 @@ async def repeater(message):
     if s == d[group_id][0]:
         d[group_id][1] += 1
         if d[group_id][1] == 3:
-            await bot.send_group_msg(group_id = group_id, message = s)
+            if not s.startswith('%'):
+                await bot.send_group_msg(group_id = group_id, message = s)
             d.pop(group_id)
     
     else:

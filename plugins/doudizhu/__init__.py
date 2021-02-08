@@ -3,6 +3,7 @@
 import nonebot
 from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
+from nonebot.message import MessageSegment as ms
 
 import random, math
 
@@ -1006,6 +1007,13 @@ async def chu(session):
         
         await session.send(g.tbl[user_id].type + s + ' 获得了胜利！')
 
+        s = '以下是其他玩家的剩余手牌：'
+        for i in g.players:
+            if g.tbl[i].hand:
+                s = s + '\n' + ms.at(i) + ' ：' + g.tbl[i].get_hand()
+                
+        await session.send(s)
+
         ave = 0
         for i in g.players:
             ave += mmr_tbl[i][1]
@@ -1165,3 +1173,54 @@ async def zhuangtai(session):
         s = s + '\n当前分数：' + str(g.score)
         
         await send_group_message(session, s)
+
+
+@on_command('ob', aliases = ('观战'), only_to_me = False, permission = perm.GROUP)
+async def ob(session):
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+
+    if not group_id:
+        # await session.send('请在群聊中使用斗地主功能')
+        # return
+        group_id = 695683445
+    
+    if user_id == 80000000:
+        await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
+        return
+    
+    if not group_id in games or not games[group_id].state:
+        if session.event.group_id:
+            await send_group_message(session, '斗地主未开始')
+        else:
+            await session.send('斗地主未开始')
+        return
+    
+    g = games[group_id]
+    if user_id in g.tbl:
+        if session.event.group_id:
+            await send_group_message(session, '你已在当前游戏中')
+        else:
+            await session.send('你已在当前游戏中')
+        return
+
+    s = ''
+    if g.state == 'jdz' or g.state == 'qdz':
+        s = '当前正在' + ('抢' if g.state == 'qdz' else '叫') + '地主\n'
+    
+    s = s + '各位玩家的手牌如下：'
+    for i in g.tbl:
+        s = s + '\n' + mmr_tbl[i][0] + '：' + g.tbl[i].get_hand()
+    
+    if g.state == 'jdz' or g.state == 'qdz':
+        s = s + '\n' + '底牌是：' + ' '.join(g.deck)
+    
+    if not session.event.group_id:
+        await session.send(s)
+    else:
+        try:
+            await send_private_message(user_id, s)
+        except:
+            await send_group_message(session, '请先加bot为好友')
+        else:
+            await send_group_message(session, '信息已发送至私聊中，请查收')
