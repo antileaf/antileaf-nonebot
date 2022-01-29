@@ -953,10 +953,23 @@ async def chu(session):
             if g.tbl[i].type == '地主':
                 master = i
                 break
+
+        if won:
+            spring = (sum([len(g.tbl[i].hand) for i in g.players]) == 2 * 17)
+        else:
+            spring = (len(g.tbl[master].hand) == 20)
         
         delta = calc_delta(group_id, g.players, master, won, g.score)
 
-        s = '以下是各位玩家的MMR升降情况：'
+        s = ''
+
+        if spring:
+            s = ('反' if not won else '') + '春天，分数最终翻2倍！\n'
+
+            for i in delta:
+                delta[i] *= 2
+
+        s = s + '以下是各位玩家的MMR升降情况：'
 
         for i in g.players:
             old = get_mmr(group_id, user_id)
@@ -969,6 +982,10 @@ async def chu(session):
             s = s + '\n' + ms.at(i) + '： %d -> %d (%s)' % (old, new, t)
 
         await session.send(s)
+
+        for i in g.players:
+            update(group_id, i, i == master, (i == master) == won)
+            change_mmr(group_id, user_id, get_mmr(group_id, i) + delta[i])
 
         g.clear()
         games.pop(group_id)
