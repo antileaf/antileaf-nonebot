@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-  
+﻿# -*- coding: utf-8 -*-  
 
 import nonebot
 from nonebot import on_command, CommandSession, message
@@ -20,7 +20,7 @@ async def pa(session):
 
 @on_command('绿', aliases = ("AntiLeaf", "antileaf", "绿鸽鸽", "绿哥哥", '绿'), only_to_me = False, permission = perm.GROUP)
 async def lv(session):
-    await session.send(random.choice(["绿鸽鸽好帅，最喜欢他了！QwQ"]))
+    await session.send(random.choice(["绿鸽鸽好坏，最讨厌他了！QAQ"]))
 
 @on_command('呐', aliases = ("呐呐", "呐呐呐", "呐 呐", "呐 呐 呐"), only_to_me = False, permission = perm.GROUP)
 async def na(session):
