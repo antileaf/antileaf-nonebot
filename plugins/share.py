@@ -23,7 +23,7 @@ async def link_handle(session):
             if (text.startswith('[CQ:json') or text.startswith('[CQ:xml')) and t in text:
                 i = text.find(t)
                 url = ''
-                while text[i] != '?':
+                while not text[i] in ['?', ',', ';', ' ']:
                     url += text[i]
                     i += 1
                 

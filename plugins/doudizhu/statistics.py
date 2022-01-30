@@ -71,26 +71,28 @@ def change_name(group_id : int, user_id : int, name : str):
 
     save_stat()
 
-def change_mmr(group_id : int, user_id : int, new_mmr : int): # change MMR manually
+def change_mmr(group_id : int, user_id : int, new_mmr : int, save = True): # change MMR manually
     global stat_tbl
 
     assert check_user(group_id, user_id)
 
     stat_tbl[group_id][user_id].mmr = new_mmr
 
-    save_stat()
+    if save:
+        save_stat()
 
 
-def update(group_id : int, user_id : int, is_dizhu : bool, win : bool):
+def update(group_id : int, user_id : int, is_dizhu : bool, win : bool, save = True):
     global stat_tbl
 
     assert check_user(group_id, user_id)
     
-    stat_tbl[user_id].count[is_dizhu] += 1
+    stat_tbl[group_id][user_id].count[is_dizhu] += 1
     if win:
-        stat_tbl[user_id].win[is_dizhu] += 1
+        stat_tbl[group_id][user_id].win[is_dizhu] += 1
 
-    save_stat()
+    if save:
+        save_stat()
 
 def get_mmr(group_id : int, user_id : int):
     if not check_user(group_id, user_id):
@@ -99,7 +101,7 @@ def get_mmr(group_id : int, user_id : int):
     return stat_tbl[group_id][user_id].mmr
 
 def get_stat(group_id : int, user_id : int):
-    if not check_user(group_id, user_id):
+    if not check_exist(group_id, user_id):
         return None
     
     return str(stat_tbl[group_id][user_id])

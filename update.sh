@@ -1,1 +1,2 @@
-scp -r * ubuntu@tencentyun:~/antileaf-nonebot
+ssh ubuntu@tencentyun "rm -r -f ~/antileaf-nonebot/plugins"
+scp -r plugins ubuntu@tencentyun:~/antileaf-nonebot/plugins

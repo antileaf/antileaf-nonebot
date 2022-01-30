@@ -6,6 +6,7 @@ from nonebot import permission as perm
 from nonebot.message import MessageSegment as ms
 
 from nonebot.plugin import on_plugin
+from plugins.tools import send_group_message, send_private_message
 
 import random, math
 
@@ -193,20 +194,6 @@ def handle(s : str): # 返回处理好的一手牌，或者'error'
     
     return 'error'
 
-
-bot = nonebot.get_bot()
-
-async def send_group_message(session : CommandSession, s, at = True):
-    if at:
-        s = ms.at(session.event.user_id) + ' ' + s
-    await session.send(s)
-
-async def send_private_message(user_id, s):
-    try:
-        await bot.send_private_msg(user_id = user_id, message = s)
-    except:
-        pass
-
 async def check_and_create(group_id : int, user_id : int):
     if check_user(group_id, user_id):
         return
@@ -374,13 +361,13 @@ async def gaiming(session):
 
     group_id = session.event.group_id
     user_id = session.event.user_id
-
-    if user_id == 80000000:
-        await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
-        return
     
     if not group_id:
         await session.send('请在群聊中使用斗地主功能')
+        return
+
+    if user_id == 80000000:
+        await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
         return
     
     if not 'name' in session.state:
@@ -400,7 +387,56 @@ async def gaiming_parser(session):
         session.state['name'] = v[0]
 
 
-@on_command('查询', aliases = ('q', 'cx', '我的数据'), only_to_me = False, permission = perm.GROUP)
+@on_command('改分', only_to_me = False, permission = perm.GROUP)
+async def gaifen(session):
+    
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+    
+    if not group_id:
+        await session.send('请在群聊中使用斗地主功能')
+        return
+
+    if user_id == 80000000:
+        await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
+        return
+    
+    if user_id != 1094054222:
+        await send_group_message(session, '只有绿可以使用此功能')
+        return
+    
+    if 'error' in session.state:
+        await send_group_message(session, '用法： 改分 + 名字/QQ + 分数')
+        return
+    
+    u = get_userid(group_id, session.state['name'])
+
+    if not u:
+        await send_group_message(session, '未找到对应用户')
+        return
+    elif u == -1:
+        await send_group_message(session, '找到多个用户，请重新输入')
+        return
+    
+    change_mmr(group_id, u, session.state['new_mmr'])
+
+    await send_group_message(session, '修改成功')
+
+
+@gaifen.args_parser
+async def gaifen_parser(session):
+    v = session.current_arg_text.split()
+    if len(v) == 2:
+        session.state['name'] = v[0]
+        try:
+            session.state['new_mmr'] = int(v[1])
+        except:
+            session.state['error'] = True
+    else:
+        session.state['error'] = True
+
+
+@on_command('查询', aliases = ('cx'), only_to_me = False, permission = perm.GROUP)
 async def chaxun(session):
 
     group_id = session.event.group_id
@@ -539,8 +575,13 @@ async def paihangbang(session):
                 t = info['nickname']
             if t == '':
                 t = str(o[0])
+            
+            if t == o[1]:
+                t = ''
+            else:
+                t = '(' + t + ')'
 
-            s = s + '\n' + str(a.index(o) + 1) + '. ' + o[1] + '(%s)：' % t + str(o[2])
+            s = s + '\n' + str(a.index(o) + 1) + '. ' + o[1] + t + '： ' + str(o[2])
     
     await send_group_message(session, s)
 
@@ -971,21 +1012,25 @@ async def chu(session):
 
         s = s + '以下是各位玩家的MMR升降情况：'
 
+        old, new = dict(), dict()
+
         for i in g.players:
-            old = get_mmr(group_id, user_id)
-            new = old + delta[i]
+            old[i] = get_mmr(group_id, i)
+            new[i] = old[i] + delta[i]
             
             t = str(delta[i])
             if delta[i] >= 0:
                 t = '+' + t
 
-            s = s + '\n' + ms.at(i) + '： %d -> %d (%s)' % (old, new, t)
+            s = s + '\n' + ms.at(i) + '： %d -> %d (%s)' % (old[i], new[i], t)
 
-        await session.send(s)
+        await send_group_message(session, s, at = False)
 
         for i in g.players:
-            update(group_id, i, i == master, (i == master) == won)
-            change_mmr(group_id, user_id, get_mmr(group_id, i) + delta[i])
+            update(group_id, i, i == master, (i == master) == won, save = False)
+            change_mmr(group_id, i, new[i], save = False)
+        
+        save_stat()
 
         g.clear()
         games.pop(group_id)
@@ -1081,7 +1126,7 @@ async def zhuangtai(session):
     elif g.state == 'jdz' or g.state == 'qdz':
         s = '斗地主已开始，当前玩家和MMR如下：'
         for i in g.players:
-            s = s + '\n' + ms.at(i) + ' MMR：%d' % get_mmr(i)
+            s = s + '\n' + ms.at(i) + ' MMR：%d' % get_mmr(group_id, i)
         
         s = s + '\n当前状态：等待 ' + ms.at(g.cur_player) + ' ' + ('叫' if g.state == 'jdz' else '抢') + '地主'
         
@@ -1090,7 +1135,7 @@ async def zhuangtai(session):
     else:
         s = '斗地主已开始，当前玩家、手牌张数和MMR如下：'
         for i in g.players:
-            s = s + '\n' + g.tbl[i].type + ' ' + ms.at(i) + '：%d张 MMR：%d' % (len(g.tbl[i].hand), get_mmr(i))
+            s = s + '\n' + g.tbl[i].type + ' ' + ms.at(i) + '：%d张 MMR：%d' % (len(g.tbl[i].hand), get_mmr(group_id, i))
         
         s = s + '\n底牌是：' + ' '.join(map(completed, list(g.deck)))
         
@@ -1146,7 +1191,7 @@ async def jipai(session):
                 if s[-1] != '\n':
                     s += ' '
 
-                s += simplified(c) * dic[c]
+                s += completed(c) * dic[c]
     
     await send_group_message(session, s)
 
@@ -1195,7 +1240,7 @@ async def ob(session):
         await session.send(s)
     else:
         try:
-            await send_private_message(user_id, s)
+            await send_private_message(user_id, s, noexcept = False)
         except:
             await send_group_message(session, '请先加bot为好友')
         else:
