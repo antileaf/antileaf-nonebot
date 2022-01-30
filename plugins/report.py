@@ -5,23 +5,50 @@ from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
 from nonebot.message import MessageSegment as ms
 
+import plugins.tools as tools
 from plugins.tools import send_group_message, send_private_message
 
 bot = nonebot.get_bot()
 
 @on_command('report', aliases = ('反馈', 'issue'), only_to_me = False, permission = perm.GROUP)
 async def report(session):
-    user_id = int(session.event['user_id'])
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+
     if 'text' in session.state:
-        s = '收到来自%d的反馈： ' % user_id + session.state['text']
-        await bot.send_private_msg(user_id = 1094054222, message = message.MessageSegment.text(s))
+
+        s = '收到'
+
+        card, nick, group = '', '', ''
+
+        if group_id:
+            card = tools.get_group_card(group_id, user_id)
+            group = tools.get_group_name(group_id)
+        
+        nick = tools.get_nickname(user_id)
+
+        s = ' ' + nick
+
+        if card:
+            s = s + '(%s, %d)' % (card, user_id)
+        else:
+            s = s + '(%d)' % user_id
+        
+        if group_id:
+            s = s + ' 在群聊 ' + group + '(%d)' % group_id
+ 
+        s = s + ' 的反馈：\n' + session.state['text']
+        await send_private_message(user_id = 1094054222)
+
         t = '已成功反馈，感谢支持！'
+
     else:
         t = '用法： 反馈 + 你要反馈的内容'
-    t = message.MessageSegment.text(t)
 
-    if session.event.group_id:
-        t = message.MessageSegment.at(user_id) + ' ' + t
+    if group_id:
+        await send_group_message(session, t)
+    else:
+        await send_private_message(user_id, t)
     
     await session.send(t)
     
