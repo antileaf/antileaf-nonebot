@@ -9,10 +9,8 @@ import aiocqhttp
 
 bot = nonebot.get_bot()
 
-@bot.on_message
+@bot.on_message('group')
 async def repeater(message):
-    if not message.group_id:
-        return
     
     group_id = message.group_id
     user_id = message.user_id

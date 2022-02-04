@@ -16,6 +16,7 @@ from .statistics import *
 
 __plugin_name__ = '斗地主'
 # TODO : add help message
+# TODO : 
 
 bot = nonebot.get_bot()
 
@@ -216,6 +217,7 @@ class Player:
         self.hand = ''
         self.type = '未知'
         self.bujiao = False
+        self.pub = False
     
     def check(self, s):
         t = self.hand[:]
@@ -467,7 +469,7 @@ async def chaxun(session):
     else:
         s = (get_name(group_id, u) if u != user_id else '你') + '的MMR： ' + str(get_mmr(group_id, u))
 
-        s += '\n' + get_stat(group_id, user_id)
+        s += '\n' + get_stat(group_id, u)
 
     await send_group_message(session, s)
 
@@ -1005,12 +1007,20 @@ async def chu(session):
         delta = calc_delta(group_id, g.players, master, won, g.score)
 
         s = ''
+        multiple = 1
 
         if spring:
-            s = ('反' if not won else '') + '春天，分数最终翻2倍！\n'
+            s = ('反' if won else '') + '春天，分数最终翻2倍！\n'
 
-            for i in delta:
-                delta[i] *= 2
+            multiple *= 2
+        
+        cnt = sum([int(g.tbl[i].pub) for i in g.tbl])
+        if cnt:
+            s = s + '本局共有%d位玩家明牌，分数最终翻%d倍！\n' % (cnt, 2 ** cnt)
+            multiple *= 2 ** cnt
+
+        for i in g.tbl:
+            delta[i] *= multiple
 
         s = s + '以下是各位玩家的MMR升降情况：'
 
@@ -1040,7 +1050,12 @@ async def chu(session):
         return
 
     
-    await session.send(g.tbl[user_id].type + ' ' + ms.at(user_id) + ' 打出了：' + completed(str(v)) + '，还剩%d张牌' % len(g.tbl[user_id].hand) + t)
+    s = g.tbl[user_id].type + ' ' + ms.at(user_id) + ' 打出了：' + completed(str(v)) + '，还剩%d张牌' % len(g.tbl[user_id].hand)
+
+    if g.tbl[user_id].pub:
+        s = s + '\n剩余手牌：' + g.tbl[user_id].get_hand()
+
+    await session.send(s + t)
 
     await send_private_message(user_id, g.tbl[user_id].get_hand())
 
@@ -1092,11 +1107,59 @@ async def buchu(session):
         return
     
     g.next_player()
-    await session.send(g.tbl[user_id].type + ' ' + ms.at(user_id) + '选择不出牌')
+
+    s = g.tbl[user_id].type + ' ' + ms.at(user_id) + '选择不出牌，还剩%d张牌' % len(g.tbl[user_id].hand)
+
+    if g.tbl[user_id].pub:
+        s = s + '\n剩余手牌：' + g.tbl[user_id].get_hand()
+
+    await session.send(s)
     
     s = '轮到 ' + g.tbl[g.cur_player].type + ' ' + ms.at(g.cur_player) + ' 出牌，上一次出牌是 ' + g.tbl[g.last_player].type + ' ' + ms.at(g.last_player) \
         + ' 出的：' + completed(str(g.last_step))
     await session.send(s)
+
+
+@on_command('明牌', aliases = ('mp'), only_to_me = False, permission = perm.GROUP)
+async def mingpai(session):
+    group_id = session.event.group_id
+    user_id = session.event.user_id
+
+    if not group_id:
+        await session.send('请在群聊中使用斗地主功能')
+        return
+    
+    if user_id == 80000000:
+        await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
+        return
+    
+    if not group_id in games:
+        await send_group_message(session, '本群还没有人使用斗地主功能')
+        return
+    
+    g = games[group_id]
+
+    if not user_id in g.tbl:
+        await send_group_message(session, '你没有加入当前游戏')
+        return
+    
+    if g.state != 'started':
+        await send_group_message(session, '只有公布底牌后才能明牌哦~')
+        return
+    
+    if g.tbl[user_id].pub:
+        await send_group_message(session, '你已经明牌过了')
+        return
+    
+    if len(g.tbl[user_id].hand) != 17 + 3 * int(g.tbl[user_id].type == '地主'):
+        await send_group_message(session, '你已经出过牌了，不能明牌')
+        return
+    
+    g.tbl[user_id].pub = True
+    
+    s = '明牌成功，最终分数翻倍！剩余手牌如下：\n' + g.tbl[user_id].get_hand()
+
+    await send_group_message(session, s)
 
 
 @on_command('状态', aliases = ('zhuangtai', 'stat', 'status', 'zt'), only_to_me = False, permission = perm.GROUP)
@@ -1138,6 +1201,9 @@ async def zhuangtai(session):
         s = '斗地主已开始，当前玩家、手牌张数和MMR如下：'
         for i in g.players:
             s = s + '\n' + g.tbl[i].type + ' ' + ms.at(i) + '：%d张 MMR：%d' % (len(g.tbl[i].hand), get_mmr(group_id, i))
+
+            if g.tbl[i].pub:
+                s = s + '\n剩余手牌：' + g.tbl[i].get_hand()
         
         s = s + '\n底牌是：' + ' '.join(map(completed, list(g.deck)))
         
@@ -1233,7 +1299,14 @@ async def ob(session):
     
     s = s + '各位玩家的手牌如下：'
     for i in g.tbl:
-        s = s + '\n' + get_name(group_id, i) + '：' + g.tbl[i].get_hand()
+        name = get_name(group_id, i)
+        card = tools.get_group_card(group_id, user_id, subst = True)
+
+        t = name
+        if card != name:
+            t = t + '(%s)' % card
+
+        s = s + '\n' + t + '：' + g.tbl[i].get_hand()
     
     if g.state == 'jdz' or g.state == 'qdz':
         s = s + '\n' + '底牌是：' + ' '.join(g.deck)

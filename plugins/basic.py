@@ -50,7 +50,9 @@ live = [
     (("MegaOwler", "Megaowler", "megaowler", "百万猫头鹰"), "live.bilibili.com/917033"),
     (("Slanterns", "SLanterns", "slanterns", "slantern", "Slantern"), "live.bilibili.com/627355"),
     (("Democracy", "democracy"), "live.bilibili.com/4620643"),
-    (("icy", "Icy", "绿泡泡", "ICY"), "live.bilibili.com/8815853")
+    (("icy", "Icy", "绿泡泡", "ICY"), "live.bilibili.com/8815853"),
+    (('龙喵'), 'https://live.bilibili.com/1033272'),
+    (('柳染'), 'https://live.bilibili.com/440687')
 ]
 
 @on_command('直播', aliases = ('查房', '直播查询'), only_to_me = False, permission = perm.GROUP)

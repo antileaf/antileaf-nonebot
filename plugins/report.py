@@ -17,17 +17,15 @@ async def report(session):
 
     if 'text' in session.state:
 
-        s = '收到'
-
         card, nick, group = '', '', ''
 
         if group_id:
-            card = tools.get_group_card(group_id, user_id)
-            group = tools.get_group_name(group_id)
+            card = await tools.get_group_card(group_id, user_id)
+            group = await tools.get_group_name(group_id)
         
-        nick = tools.get_nickname(user_id)
+        nick = await tools.get_nickname(user_id)
 
-        s = ' ' + nick
+        s = '收到 ' + nick
 
         if card:
             s = s + '(%s, %d)' % (card, user_id)
@@ -38,7 +36,7 @@ async def report(session):
             s = s + ' 在群聊 ' + group + '(%d)' % group_id
  
         s = s + ' 的反馈：\n' + session.state['text']
-        await send_private_message(user_id = 1094054222)
+        await send_private_message(1094054222, s)
 
         t = '已成功反馈，感谢支持！'
 
@@ -49,8 +47,6 @@ async def report(session):
         await send_group_message(session, t)
     else:
         await send_private_message(user_id, t)
-    
-    await session.send(t)
     
 
 @report.args_parser
