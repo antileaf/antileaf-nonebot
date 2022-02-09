@@ -258,6 +258,7 @@ class Game:
         self.state = ''
         self.deck = ''
         self.score = 0
+        self.first_cnt = 0
 
     def next_player(self):
         self.cur = (self.cur + 1) % len(self.players)
@@ -955,6 +956,9 @@ async def chu(session):
         if t != 'bigger':
             return
     
+    if not g.first_cnt:
+        g.first_cnt = len(s)
+        
     g.tbl[user_id].play(s)
 
     t = ''
@@ -1002,7 +1006,7 @@ async def chu(session):
         if won:
             spring = (sum([len(g.tbl[i].hand) for i in g.players]) == 2 * 17)
         else:
-            spring = (len(g.tbl[master].hand) == 20)
+            spring = (len(g.tbl[master].hand) == 20 - g.first_cnt)
         
         delta = calc_delta(group_id, g.players, master, won, g.score)
 
@@ -1010,7 +1014,7 @@ async def chu(session):
         multiple = 1
 
         if spring:
-            s = ('反' if won else '') + '春天，分数最终翻2倍！\n'
+            s = ('反' if not won else '') + '春天，分数最终翻2倍！\n'
 
             multiple *= 2
         
@@ -1300,7 +1304,7 @@ async def ob(session):
     s = s + '各位玩家的手牌如下：'
     for i in g.tbl:
         name = get_name(group_id, i)
-        card = tools.get_group_card(group_id, user_id, subst = True)
+        card = await tools.get_group_card(group_id, i, subst = True)
 
         t = name
         if card != name:

@@ -8,10 +8,10 @@ bot = nonebot.get_bot()
 
 d = dict()
 
-@bot.on_message
+@bot.on_message('group')
 async def repeater(message):
-    if not message.group_id:
-        return
+    # if not message.group_id:
+    #     return
     
     group_id = message.group_id
     s = message['raw_message']
@@ -20,9 +20,11 @@ async def repeater(message):
     
     if s == d[group_id][0]:
         d[group_id][1] += 1
+
         if d[group_id][1] == 3:
             if not s.startswith('%'):
                 await bot.send_group_msg(group_id = group_id, message = s)
+                
             d.pop(group_id)
     
     else:
