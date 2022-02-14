@@ -79,7 +79,7 @@ class Combination:
         self.type = typ
         '''
         single, double, triple, triple1, triple2, 单张，对子，三张，三带一，三带二
-        quadruple, quadruple2, 炸弹，四带二
+        quadruple, quadruple2, quadruple22, 炸弹，四带二，四带两对
         serial, 2serial, 3serial, 3serial1, 3serial2, 顺子，连对，飞机，飞机带一张，飞机带两张
         rocket 火箭
         '''
@@ -91,7 +91,7 @@ class Combination:
             return self.major * 2
         elif self.type == 'triple' or self.type == 'triple1' or self.type == 'triple2':
             return self.major * 3 + self.minor
-        elif self.type == 'quadruple' or self.type == 'quadruple2':
+        elif self.type == 'quadruple' or self.type == 'quadruple2' or self.type == 'quadruple22':
             return self.major * 4 + self.minor
         elif self.type == 'serial':
             return self.major
@@ -168,6 +168,14 @@ def handle(s : str): # 返回处理好的一手牌，或者'error'
             s = ''.join(list(s)[2:] + list(s)[:2])
         if s[0] == s[1] and s[1] == s[2] and s[2] == s[3]:
             return Combination(s[0], s[4] + s[5], 'quadruple2')
+    
+    elif len(s) == 8:
+        for i in range(2):
+            if s[0] == s[1] and s[1] != s[2]:
+                s = ''.join(list(s)[2:] + list(s)[:2])
+        
+        if s[0] == s[1] and s[1] == s[2] and s[2] == s[3] and s[4] == s[5] and s[6] == s[7]:
+            return Combination(s[0], s[4:], 'quadruple22')
         
     if s in '34567891JQKA' and len(s) >= 5:
         return Combination(s, '', 'serial')
@@ -745,7 +753,7 @@ async def bujiao(session):
 
         s = '以下是各位玩家的手牌：'
         for i in g.tbl:
-            s = s + '\n' + ms.at(i) + '： ' + g.tbl[i].get_hand()
+            s = s + '\n' + ms.at(i) + '： ' + completed(g.tbl[i].get_hand())
         s = s + '\n底牌是：' + ' '.join(g.deck)
         await session.send(s)
 
@@ -1020,11 +1028,12 @@ async def chu(session):
         
         cnt = sum([int(g.tbl[i].pub) for i in g.tbl])
         if cnt:
-            s = s + '本局共有%d位玩家明牌，分数最终翻%d倍！\n' % (cnt, 2 ** cnt)
+            s = s + '本局共有%d位玩家明牌，明牌玩家分数最终翻%d倍！\n' % (cnt, 2 ** cnt)
             multiple *= 2 ** cnt
 
         for i in g.tbl:
-            delta[i] *= multiple
+            if g[i].pub:
+                delta[i] *= multiple
 
         s = s + '以下是各位玩家的MMR升降情况：'
 
@@ -1155,8 +1164,8 @@ async def mingpai(session):
         await send_group_message(session, '你已经明牌过了')
         return
     
-    if len(g.tbl[user_id].hand) != 17 + 3 * int(g.tbl[user_id].type == '地主'):
-        await send_group_message(session, '你已经出过牌了，不能明牌')
+    if g.last_step:
+        await send_group_message(session, '已经开始出牌了，不能明牌')
         return
     
     g.tbl[user_id].pub = True
