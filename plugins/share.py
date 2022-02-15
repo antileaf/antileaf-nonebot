@@ -8,7 +8,7 @@ import json, re, time
 
 bot = nonebot.get_bot()
 
-@bot.on_message
+@bot.on_message('group')
 async def link_handle(session):
     prefixes = ['b23.tv/', 'www.zhihu.com/', 'www.bilibili.com/']
 

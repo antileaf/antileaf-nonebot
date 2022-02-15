@@ -23,7 +23,7 @@ async def repeater(message):
             pass
         await bot.send_group_msg(group_id = group_id, message = message.MessageSegment.at(user_id) + ' 请不要恶意使用xml消息')
 
-@on_command('escape', only_to_me = False, permission = perm.GROUP)
+@on_command('escape', only_to_me = False, permission = (perm.GROUP, perm.SUPERUSER))
 async def manual_escape(session):
     if not 'content' in session.state:
         return

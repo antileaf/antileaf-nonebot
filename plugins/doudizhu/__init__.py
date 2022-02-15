@@ -313,9 +313,9 @@ async def kaiju(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -352,9 +352,9 @@ async def jieshu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id != 1094054222:
         await send_group_message(session, '只有绿可以使用此功能')
@@ -375,9 +375,9 @@ async def gaiming(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
     
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
 
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -406,9 +406,9 @@ async def gaifen(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
     
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
 
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -459,9 +459,9 @@ async def chaxun(session):
         await send_group_message(session, '请解除匿名后再查询', at = False)
         return
     
-    if not group_id:
-        await send_group_message(session, '请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await send_group_message(session, '请在群聊中使用斗地主功能')
+    #     return
     
     if 'error' in session.state:
         await send_group_message(session, '用法： 查询\n 或： 查询 + QQ/at/名字')
@@ -550,9 +550,9 @@ async def chongzhi(session):
         await send_group_message(session, '只有绿可以使用此功能', at = (user_id != 80000000))
         return
     
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     clear_group(group_id)
 
@@ -569,9 +569,9 @@ async def paihangbang(session):
         await send_group_message(session, '请解除匿名后再查询', at = False)
         return
     
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     a = get_ranklist(group_id)
 
@@ -605,9 +605,9 @@ async def jiaru(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -644,9 +644,9 @@ async def tuichu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -675,9 +675,9 @@ async def jiaodizhu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -716,9 +716,9 @@ async def bujiao(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -772,9 +772,9 @@ async def qiangdizhu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -844,9 +844,9 @@ async def buqiang(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -915,9 +915,9 @@ async def chu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -1093,9 +1093,9 @@ async def buchu(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -1138,9 +1138,9 @@ async def mingpai(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -1180,9 +1180,9 @@ async def zhuangtai(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -1236,9 +1236,9 @@ async def jipai(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
 
-    if not group_id:
-        await session.send('请在群聊中使用斗地主功能')
-        return
+    # if not group_id:
+    #     await session.send('请在群聊中使用斗地主功能')
+    #     return
     
     if user_id == 80000000:
         await send_group_message(session, '请解除匿名后再使用斗地主功能', at = False)
@@ -1277,7 +1277,7 @@ async def jipai(session):
     await send_group_message(session, s)
 
 
-@on_command('ob', aliases = ('观战'), only_to_me = False, permission = perm.GROUP)
+@on_command('ob', aliases = ('观战'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE_FRIEND))
 async def ob(session):
     group_id = session.event.group_id
     user_id = session.event.user_id

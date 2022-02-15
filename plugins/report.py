@@ -10,7 +10,7 @@ from plugins.tools import send_group_message, send_private_message
 
 bot = nonebot.get_bot()
 
-@on_command('report', aliases = ('反馈', 'issue'), only_to_me = False, permission = perm.GROUP)
+@on_command('report', aliases = ('反馈', 'issue'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
 async def report(session):
     group_id = session.event.group_id
     user_id = session.event.user_id
