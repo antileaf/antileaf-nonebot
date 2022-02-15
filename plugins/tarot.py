@@ -2,10 +2,12 @@
 
 from nonebot import on_command, CommandSession
 from nonebot import permission as perm
-from nonebot import message
+# from nonebot import message
 from nonebot.message import MessageSegment as ms
 
 import time, random, datetime
+
+from plugins.tools import local_image
 
 major_tarot = [
     ('愚者', 'The Fool', ('憧憬自然的地方、毫无目的地前行、喜欢尝试挑战新鲜事物、四处流浪', '冒险的行动，追求可能性，重视梦想，无视物质的损失，离开家园，过于信赖别人，为出外旅行而烦恼')),
@@ -40,14 +42,21 @@ def calc(x, z):
 @on_command('tarot', aliases = ('塔罗牌', '占卜', '单张塔罗牌'), only_to_me = False, permission = perm.GROUP)
 async def single_tarot(session):
     user_id = int(session.event['user_id'])
+
     i = calc(user_id, session.state['hash']) % (2 * len(major_tarot))
     j, i = int(i >= len(major_tarot)), i % len(major_tarot)
-    s = message.MessageSegment.text('你抽到了： %d %s %s %s\n释义：%s' % (
-        i, major_tarot[i][0], major_tarot[i][1], ('正位', '逆位')[j], major_tarot[i][2][j]))
+
+    s = '你抽到了： %d %s %s %s\n' % (i, *major_tarot[i][:2], ('正位', '逆位')[j])
+
+    s = s + local_image('tarot/%s.jfif' % major_tarot[i][1]) + '\n'
+
+    s = s + '释义：%s' % major_tarot[i][2][j]
+
     if session.state['text']:
         s = '占卜事项：' + session.state['text'] + '\n' + s
     if session.event.group_id:
-        s = message.MessageSegment.at(user_id) + ' ' + s
+        s = ms.at(user_id) + ' ' + s
+
     await session.send(s)
 
 @single_tarot.args_parser

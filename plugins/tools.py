@@ -42,3 +42,6 @@ async def get_group_name(group_id : int):
     info = await bot.get_group_info(group_id = group_id)
 
     return info['group_name']
+
+def local_image(file : str):
+    return ms.image(file = '~/antileaf-nonebot/images/' + file)
