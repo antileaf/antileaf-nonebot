@@ -210,6 +210,6 @@ def calc_delta(group_id, players : list, master : int, won : bool, score):
         else:
             delta[i] *= -calc(a[i] - average)
         
-        delta[i] = int(delta[i] + 0.5) + 15
+        delta[i] = int(delta[i] + 0.5) + 10 # 15有点太多了，为减轻通货膨胀改为10分
     
     return delta

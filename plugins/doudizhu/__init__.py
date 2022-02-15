@@ -1318,8 +1318,11 @@ async def ob(session):
         t = name
         if card != name:
             t = t + '(%s)' % card
+        
+        if g.state == 'started':
+            t = g.tbl[i].type + ' ' + t
 
-        s = s + '\n' + t + '：' + g.tbl[i].get_hand()
+        s = s + '\n' + t + '：' + g.tbl[i].get_hand() + '，共%d张' % len(g.tbl[i].hand)
     
     if g.state == 'jdz' or g.state == 'qdz':
         s = s + '\n' + '底牌是：' + ' '.join(g.deck)
@@ -1333,5 +1336,3 @@ async def ob(session):
             await send_group_message(session, '请先加bot为好友')
         else:
             await send_group_message(session, '信息已发送至私聊中，请查收')
-
-#
