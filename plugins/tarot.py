@@ -48,7 +48,7 @@ async def single_tarot(session):
 
     s = '你抽到了： %d %s %s %s\n' % (i, *major_tarot[i][:2], ('正位', '逆位')[j])
 
-    s = s + local_image('tarot/%s.jfif' % major_tarot[i][1]) + '\n'
+    s = s + local_image('tarot/%s.png' % major_tarot[i][1]) + '\n'
 
     s = s + '释义：%s' % major_tarot[i][2][j]
 
