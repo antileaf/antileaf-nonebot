@@ -3,6 +3,7 @@
 import nonebot
 from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
+from nonebot.message import MessageSegment as ms
 
 import random, ast
 
@@ -134,3 +135,15 @@ async def evaluate(session):
 @evaluate.args_parser
 async def evaluate_parser(session):
     session.state['command'] = ' '.join(session.current_arg_text.split())
+
+
+@on_command('repo', aliases = ('仓库', '地址', '源码', '代码'), only_to_me = False, permission = perm.GROUP)
+async def get_repo_url(session):
+    repo_url = 'https://github.com/antileaf/antileaf-nonebot'
+
+    group_id = session.event.group_id
+
+    if group_id:
+        await session.send(ms.at(session.event.user_id) + ' ' + repo_url)
+    else:
+        await session.send(repo_url)
