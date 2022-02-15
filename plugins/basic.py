@@ -61,7 +61,7 @@ live = [
     (('柳染'), 'https://live.bilibili.com/440687')
 ]
 
-@on_command('直播', aliases = ('查房', '直播查询'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('直播', aliases = ('查房', '直播查询'), only_to_me = False, permission = perm.EVERYBODY)
 async def live_number(session):
     t = ''
     tmp = ''
@@ -108,7 +108,7 @@ async def close(session):
     evaluate_on = False
     await session.send('Python功能已关闭')
 
-@on_command('eval', aliases = ('evaluate'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('eval', aliases = ('evaluate'), only_to_me = False, permission = perm.EVERYBODY)
 async def evaluate(session):
     user_id = int(session.event['user_id'])
     group_id = session.event.group_id
@@ -142,7 +142,7 @@ async def evaluate_parser(session):
     session.state['command'] = ' '.join(session.current_arg_text.split())
 
 
-@on_command('repo', aliases = ('仓库', '地址', '源码', '代码'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('repo', aliases = ('仓库', '地址', '源码', '代码'), only_to_me = False, permission = perm.EVERYBODY)
 async def get_repo_url(session):
     repo_url = 'https://github.com/antileaf/antileaf-nonebot'
 

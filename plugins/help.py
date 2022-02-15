@@ -17,7 +17,7 @@ help_info = [
     (('检定', 'dice', 'check'), '投骰子模拟器，使用方法：%检定 ndm，表示投掷n个有m面的骰子')
 ]
 
-@on_command('help', aliases = ('帮助', 'Help'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('help', aliases = ('帮助', 'Help'), only_to_me = False, permission = perm.EVERYBODY)
 async def help(session : CommandSession):
     if 'name' in session.state:
         s = ''

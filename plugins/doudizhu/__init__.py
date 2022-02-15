@@ -1277,7 +1277,7 @@ async def jipai(session):
     await send_group_message(session, s)
 
 
-@on_command('ob', aliases = ('观战'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE_FRIEND))
+@on_command('ob', aliases = ('观战'), only_to_me = False, permission = perm.EVERYBODY)
 async def ob(session):
     group_id = session.event.group_id
     user_id = session.event.user_id

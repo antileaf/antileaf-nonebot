@@ -15,7 +15,7 @@ tbl = (
     ('浊心斯卡蒂', '凯尔希', '异客', '嵯峨', '空弦', '山', '泥岩', '瑕光', '史尔特尔', '森蚺', '棘刺', '铃兰', '早露', '温蒂', '傀影', '风笛', '刻俄柏', '阿', '煌', '莫斯提马', '麦哲伦', '赫拉格', '黑', '陈', '塞雷娅', '星熊', '夜莺', '闪灵', '伊芙利特', '艾雅法拉', '斯卡蒂', '推进之王', '能天使', '银灰', '安洁莉娜') #6
 )
 
-@on_command('十连', aliases = ('抽卡'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('十连', aliases = ('抽卡'), only_to_me = False, permission = perm.EVERYBODY)
 async def shilian(session):
 
     v = []

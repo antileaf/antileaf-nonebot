@@ -39,7 +39,7 @@ def calc(x, z):
     y = (datetime.date.today() - datetime.date(2000, 1, 1)).days
     return (x ^ y ^ z) + (pow(x, y, 1000000007) ^ pow(y, x, 998244353) ^ pow(z, x, 1000000007) ^ pow(y, z, 1000000007))
 
-@on_command('tarot', aliases = ('塔罗牌', '占卜', '单张塔罗牌'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('tarot', aliases = ('塔罗牌', '占卜', '单张塔罗牌'), only_to_me = False, permission = perm.EVERYBODY)
 async def single_tarot(session):
     user_id = int(session.event['user_id'])
 
@@ -66,7 +66,7 @@ async def single_tarot_parser(session):
     session.state['hash'] = hash(s)
 
 
-@on_command('检定', aliases = ('check', 'dice'), only_to_me = False, permission = (perm.GROUP, perm.PRIVATE))
+@on_command('检定', aliases = ('check', 'dice'), only_to_me = False, permission = perm.EVERYBODY)
 async def check(session):
     user_id = int(session.event['user_id'])
 
