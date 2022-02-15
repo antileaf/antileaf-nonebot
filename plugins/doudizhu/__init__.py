@@ -753,7 +753,7 @@ async def bujiao(session):
 
         s = '以下是各位玩家的手牌：'
         for i in g.tbl:
-            s = s + '\n' + ms.at(i) + '： ' + completed(g.tbl[i].get_hand())
+            s = s + '\n' + ms.at(i) + '： ' + g.tbl[i].get_hand()
         s = s + '\n底牌是：' + ' '.join(g.deck)
         await session.send(s)
 
