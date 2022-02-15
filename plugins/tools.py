@@ -43,5 +43,8 @@ async def get_group_name(group_id : int):
 
     return info['group_name']
 
-def local_image(file : str):
-    return ms.image(file = '~/antileaf-nonebot/images/' + file)
+def local_image(file_name : str):
+    file_name = '../../../antileaf-nonebot/images/' + file_name
+    # TODO: 这太逆天了，有空改成绝对路径
+
+    return ms.image(file = file_name)
