@@ -1032,7 +1032,7 @@ async def chu(session):
             multiple *= 2 ** cnt
 
         for i in g.tbl:
-            if g[i].pub:
+            if g.tbl[i].pub:
                 delta[i] *= multiple
 
         s = s + '以下是各位玩家的MMR升降情况：'
