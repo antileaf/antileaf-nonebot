@@ -1,0 +1,1 @@
+cp -r -f plugins/rss //wsl$/Ubuntu-20.04/home/antileaf/antileaf-nonebot/plugins

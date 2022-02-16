@@ -21,6 +21,12 @@ async def send_private_message(user_id, s, noexcept = True):
         if not noexcept:
             raise 'Failed to send private message'
 
+async def auto_reply(session : CommandSession, s): # at must be true
+    if session.event.group_id:
+        await send_group_message(session, s)
+    else:
+        await session.send(s)
+
 
 async def get_nickname(user_id : int):
     info = await bot.get_stranger_info(user_id = user_id)
