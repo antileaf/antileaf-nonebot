@@ -581,7 +581,12 @@ async def paihangbang(session):
         s = '排行榜：'
 
         for o in a:
-            info = await bot.get_group_member_info(group_id = group_id, user_id = o[0])
+            try:
+                info = await bot.get_group_member_info(group_id = group_id, user_id = o[0])
+            except: # 这个人退群了
+                del_user(group_id, o[0])
+
+                continue
 
             t = info['card']
             if t == '':

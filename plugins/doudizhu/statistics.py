@@ -111,7 +111,7 @@ def del_user(group_id : int, user_id : int):
         return False
     
     global stat_tbl
-    stat_tbl[group_id].remove(user_id)
+    del stat_tbl[group_id][user_id]
 
     save_stat()
 
