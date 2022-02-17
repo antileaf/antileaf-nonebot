@@ -119,7 +119,7 @@ def query_groups(author : str):
 	return sub_groups[author]
 
 
-def query_author_by_user(user_id : int, name : str):
+def query_author_by_user(user_id : int):
 	a = []
 
 	for o in rss_tbl:
@@ -128,7 +128,7 @@ def query_author_by_user(user_id : int, name : str):
 	
 	return a
 
-def query_author_by_group(group_id : int, name : str):
+def query_author_by_group(group_id : int):
 	a = []
 
 	for o in rss_tbl:

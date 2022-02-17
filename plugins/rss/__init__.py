@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import threading
 import nonebot
 from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
@@ -8,7 +9,6 @@ from nonebot.message import MessageSegment as ms
 from nonebot.plugin import on_plugin
 
 import time, asyncio
-import _thread
 
 import plugins.tools as tools
 from plugins.tools import send_group_message, send_private_message, auto_reply
@@ -47,19 +47,18 @@ async def send_notice(author : str, art : Article):
 
 	msg = f'{author} 发表了一篇新文章！\n\n' + generate_notice(art) \
 		+ '\n\n此消息来自于 AntiLeaf-Bot 的 RSS 订阅功能，如不想再收到此通知，可以随时取消订阅\n\
-			如需获取帮助，请使用\"%help rss\"指令'
+如需获取帮助，请使用\"%help rss\"指令'
 
 	for user_id in users:
 		await send_private_message(user_id, '您订阅的 ' + msg)
 	
-	for group_id in users:
+	for group_id in groups:
 		await bot.send_group_msg(group_id = group_id, message = msg)
 
 
+@nonebot.scheduler.scheduled_job('interval', seconds = 5 * 60)
 async def work():
 	# await send_private_message(bot_author, 'starts work!')
-
-	hell_its_about_time()
 
 	rss_tbl = get_rss_tbl()
 
@@ -69,22 +68,44 @@ async def work():
 		for art in v:
 			if is_new(art.published):
 				await send_notice(author, art) # 也许不需要 await
+			# else:
+			# 	await send_private_message(bot_author, str(art.published) + ' ' + str(last_checked))
+
+	hell_its_about_time()
 	
-	await send_private_message(bot_author, 'end work!')
+	# await send_private_message(bot_author, 'end work!')
 	# TODO: 记录一条 log
 
 
-def main_process(): # 定时检查
-	while True:
-		# await send_private_message(bot_author, '???')
-		print('Test\n')
-		asyncio.run_coroutine_threadsafe(work(), asyncio.get_event_loop()) # async
-		time.sleep(1)
+# async def main_process(): # 定时检查
+# 	while True:
+# 		# await send_private_message(bot_author, '???')
+# 		# print('Test\n')
+# 		await work() # async
+# 		await asyncio.sleep(5 * 60)
+
+
+# started = True
+
+# @on_command('start', permission = perm.SUPERUSER)
+# async def start_working(session : CommandSession):
+# 	global started
+
+# 	if started:
+# 		await auto_reply(session, '已经开始过了')
+# 		return
+	
+# 	started = True
+# 	await auto_reply(session, '已开始轮询')
+# 	await main_process()
 
 
 @on_plugin('loading')
 async def you_will_never_fade_away(): #
 	load_all()
+
+	hell_its_about_time()
+	await work()
 
 	# main_process()
 
@@ -240,6 +261,23 @@ async def rss_get_subscribers(session : CommandSession):
 	await auto_reply(session, s)
 
 
+async def rss_my_subscribes(session : CommandSession):
+	group_id = session.event.group_id
+	user_id = session.event.user_id
+
+	if group_id:
+		v = query_author_by_group(group_id)
+	else:
+		v = query_author_by_user(user_id)
+	
+	s = '你' if not group_id else '本群' + '订阅的作者如下：'
+	
+	s += '\n'.join([f'{o}\t{get_url(o)}' for o in v])
+	
+	await auto_reply(session, s)
+	
+
+
 async def rss_get_newest(session : CommandSession):
 	group_id = session.event.group_id
 	user_id = session.event.user_id
@@ -295,7 +333,7 @@ async def rss_work(session : CommandSession):
 	elif op == '订阅者':
 		await rss_get_subscribers(session)
 	elif op == '我的':
-		await rss_get_subscribers(session)
+		await rss_my_subscribes(session)
 
 	elif op == '订阅':
 		if group_id:
