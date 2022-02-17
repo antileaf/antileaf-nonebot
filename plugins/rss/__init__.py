@@ -240,7 +240,7 @@ async def rss_group_unsubscribe(session : CommandSession):
 		await session.send(f'作者 {author} 不存在')
 		return
 
-	res = add_group(group_id, author)
+	res = del_group(group_id, author)
 
 	await send_group_message(session, '取消订阅成功' if res else f'本群没有订阅作者 {author}')
 

@@ -14,9 +14,9 @@ async def send_group_message(session : CommandSession, s, at = True):
     await session.send(s)
 
 
-async def send_private_message(user_id, s, noexcept = True):
+async def send_private_message(user_id, message, noexcept = True):
     try:
-        await bot.send_private_msg(user_id = user_id, message = s)
+        await bot.send_private_msg(user_id = user_id, message = message)
     except:
         if not noexcept:
             raise 'Failed to send private message'
