@@ -22,6 +22,10 @@ async def send_private_message(user_id, s, noexcept = True):
             raise 'Failed to send private message'
 
 async def auto_reply(session : CommandSession, s): # at must be true
+    '''
+    根据 session 自动回复，记得传 session
+    '''
+
     if session.event.group_id:
         await send_group_message(session, s)
     else:
