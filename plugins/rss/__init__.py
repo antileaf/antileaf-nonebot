@@ -10,12 +10,13 @@ from nonebot.plugin import on_plugin
 
 import time, asyncio
 
-import plugins.tools as tools
-from plugins.tools import send_group_message, send_private_message, auto_reply
-from plugins.tools import get_nickname, get_group_name
+import plugins.toolkit as toolkit
+from plugins.toolkit.subscribe import Subscribe
+from plugins.toolkit.message import send_group_message, send_private_message, auto_reply
+from plugins.toolkit.cq import get_nickname, get_group_name
 
-from .parser import Article, get_articles, generate_article_info, generate_blog_info
-from .statistics import *
+from . import parser
+# from .parser import Article, get_articles, generate_article_info, generate_blog_info
 from .check_update import *
 
 bot = nonebot.get_bot()
@@ -47,11 +48,20 @@ by AntiLeaf
 '''
 
 
-async def send_notice(author : str, art : Article):
-	users = query_users(author)
-	groups = query_groups(author)
+subsc = Subscribe('rss')
 
-	msg = f'{author} 发表了一篇新文章！\n\n' + generate_article_info(art) \
+@on_plugin('loading')
+async def you_will_never_fade_away(): # awake
+	subsc.load()
+
+	hell_its_about_time()
+
+
+async def send_notice(author : str, art : parser.Article):
+	users = subsc.get_subscribed_users(author)
+	groups = subsc.get_subscribed_groups(author)
+
+	msg = f'{author} 发表了一篇新文章！\n\n' + parser.generate_article_info(art) \
 		+ '\n\n此消息来自于 AntiLeaf-Bot 的 RSS 订阅功能，如不想再收到此通知，可以随时取消订阅\n\
 如需获取帮助，请使用\"%help rss\"指令'
 
@@ -66,14 +76,12 @@ async def send_notice(author : str, art : Article):
 async def work():
 	# await send_private_message(bot_author, 'starts work!')
 
-	rss_tbl = get_rss_tbl()
-
-	for author in rss_tbl:
-		v = get_articles(rss_tbl[author])
+	for author in subsc.get_authors():
+		v = parser.get_articles(subsc.get_detail(author, 'feed'))
 
 		for art in v:
 			if is_new(art.published):
-				await send_notice(author, art) # 也许不需要 await
+				await send_notice(author, art)
 			# else:
 			# 	await send_private_message(bot_author, str(art.published) + ' ' + str(last_checked))
 
@@ -106,14 +114,6 @@ async def work():
 # 	await main_process()
 
 
-@on_plugin('loading')
-async def you_will_never_fade_away(): # awake
-	load_all()
-
-	hell_its_about_time()
-	# await work()
-
-	# main_process()
 
 
 async def rss_add_author(session : CommandSession):
@@ -130,7 +130,7 @@ async def rss_add_author(session : CommandSession):
 		await auto_reply(session, '作者名字呢？')
 		return
 	
-	if check_author(author):
+	if subsc.check_author(author):
 		await auto_reply(session, f'{author} 已在作者列表中')
 		return
 	
@@ -138,7 +138,15 @@ async def rss_add_author(session : CommandSession):
 		await auto_reply(session, '你地址呢？')
 		return
 	
-	add_rss(author, session.state['link'])
+	subsc.add_author(author)
+	
+	feed_url = session.state['link']
+	blog = parser.get_blog(feed_url)
+
+	subsc.update_detail(author, 'feed_url', feed_url)
+	subsc.update_detail(author, 'title', blog.title)
+	subsc.update_detail(author, 'link', blog.link)
+	subsc.update_detail(author, 'subtitle', blog.subtitle)
 
 	await auto_reply(session, f'添加成功！\n作者：{author}\tRSS 地址：{session.state["link"]}')
 
@@ -156,11 +164,11 @@ async def rss_del_author(session : CommandSession):
 	if not author:
 		await auto_reply(session, '作者名字呢？')
 
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await auto_reply(f'作者 {author} 不存在')
 		return
 	
-	del_rss(author)
+	subsc.del_author(author)
 
 	await auto_reply(session, f'已成功删除作者 {author}')
 
@@ -175,11 +183,11 @@ async def rss_user_subscribe(session : CommandSession):
 		await auto_reply(session, '请输入你要订阅的作者')
 		return
 
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await session.send(f'作者 {author} 不存在')
 		return
 
-	res = add_user(user_id, author)
+	res = subsc.add_user(user_id, author)
 
 	await session.send('订阅成功' if res else f'你已经订阅过作者 {author} 了')
 
@@ -194,11 +202,11 @@ async def rss_user_unsubscribe(session : CommandSession):
 		await auto_reply(session, '请输入你要取消订阅的作者')
 		return
 
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await session.send(f'作者 {author} 不存在')
 		return
 	
-	res = del_user(user_id, author)
+	res = subsc.user_unsubscribe(user_id, author)
 
 	await session.send('取消订阅成功' if res else f'你没有关注作者 {author}')
 	
@@ -216,8 +224,12 @@ async def rss_group_subscribe(session : CommandSession):
 	if not user_id in rss_superusers:
 		await send_group_message(session, '只有超级用户才能修改群订阅')
 		return
+	
+	if not subsc.check_author(author):
+		await session.send(f'作者 {author} 不存在')
+		return
 
-	res = add_group(group_id, author)
+	res = subsc.group_subscribe(group_id, author)
 
 	await send_group_message(session, '订阅成功' if res else f'本群已订阅过作者 {author}')
 
@@ -236,11 +248,11 @@ async def rss_group_unsubscribe(session : CommandSession):
 		await send_group_message(session, '只有超级用户才能修改群订阅')
 		return
 	
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await session.send(f'作者 {author} 不存在')
 		return
 
-	res = del_group(group_id, author)
+	res = subsc.group_unsubscribe(group_id, author)
 
 	await send_group_message(session, '取消订阅成功' if res else f'本群没有订阅作者 {author}')
 
@@ -249,15 +261,13 @@ async def rss_get_list(session : CommandSession):
 	group_id = session.event.group_id
 	user_id = session.event.user_id
 
-	rss_tbl = get_rss_tbl()
-
-	if not rss_tbl:
+	if not subsc.any_author():
 		s = '目前还没有任何作者'
 	else:
 		s = '作者列表如下：'
 
-		for author in rss_tbl:
-			s += f'\n{author}\t{get_blog_url(author)}'
+		for author in subsc.get_authors():
+			s += f'\n{author}\t{subsc.get_detail(author, "link")}'
 	
 	await auto_reply(session, s)
 
@@ -272,12 +282,12 @@ async def rss_get_subscribers(session : CommandSession):
 		await auto_reply(session, '请输入你要查询的作者')
 		return
 	
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await auto_reply(session, f'作者 {author} 不存在')
 		return
 	
-	users = query_users(author)
-	groups = query_groups(author)
+	users = subsc.get_subscribed_users(author)
+	groups = subsc.get_subscribed_groups(author)
 
 	if not users and not groups:
 		s = '该作者还没有任何订阅者'
@@ -299,9 +309,9 @@ async def rss_my_subscribes(session : CommandSession):
 	user_id = session.event.user_id
 
 	if group_id:
-		v = query_author_by_group(group_id)
+		v = subsc.get_group_subscribes(group_id)
 	else:
-		v = query_author_by_user(user_id)
+		v = subsc.get_user_subscribes(user_id)
 	
 	if not v:
 		s = ('你' if not group_id else '本群') + '还没有订阅任何作者'
@@ -309,9 +319,9 @@ async def rss_my_subscribes(session : CommandSession):
 	else:
 		s = ('你' if not group_id else '本群') + '订阅的作者如下：\n'
 		
-		s += '\n'.join([f'{o}\t{get_blog_url(o)}' for o in v])
+		s += '\n'.join([f'{author}\t{subsc.get_detail(author, "link")}' for author in v])
 	
-	await auto_reply(session, s)	
+	await auto_reply(session, s)
 
 
 async def rss_get_newest(session : CommandSession):
@@ -324,13 +334,13 @@ async def rss_get_newest(session : CommandSession):
 		await auto_reply(session, '请输入你要查询的作者')
 		return
 	
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await auto_reply(session, f'作者 {author} 不存在')
 		return
 	
 	# await auto_reply(session, '处理中……')
 
-	v = get_articles(get_feed_url(author))
+	v = parser.get_articles(subsc.get_detail(author, "feed_url"))
 
 	if not v:
 		s = f'作者 {author} 还没有发表过文章'
@@ -341,7 +351,7 @@ async def rss_get_newest(session : CommandSession):
 		v = v[:cnt]
 
 		s = f'作者 {author} 的最新文章如下：\n\n' + \
-			'\n\n'.join([generate_article_info(art) for art in v])
+			'\n\n'.join([parser.generate_article_info(art) for art in v])
 
 		s += '\n\n（如需查看更多文章，请访问作者主页）'
 	
@@ -358,11 +368,12 @@ async def rss_get_detail(session : CommandSession):
 		await auto_reply(session, '请输入你要查询的作者')
 		return
 	
-	if not check_author(author):
+	if not subsc.check_author(author):
 		await auto_reply(session, f'作者 {author} 不存在')
 		return
 	
-	s = f'作者 {author} 的博客信息如下：\n' + generate_blog_info(query_blog(author))
+	s = f'作者 {author} 的博客信息如下：\n' + \
+		parser.generate_blog_info(subsc.get_details(author, {'title', 'link', 'subtitle'}))
 
 	await auto_reply(session, s)
 
@@ -378,9 +389,14 @@ async def rss_update_blog(session : CommandSession):
 	author = session.state['author']
 
 	if author:
-		update_blog_info(author)
+		v = [author]
 	else:
-		update_all()
+		v = [o for o in subsc.get_authors()]
+
+	for author in v:
+		blog = parser.parse_blog(subsc.get_detail(author, 'feed_url'))
+
+		subsc.set_detail(author, {'title' : blog.title, 'link' : blog.link, 'subtitle' : blog.subtitle})
 	
 	await auto_reply(session, '更新成功')
 
@@ -438,15 +454,15 @@ async def rss_work(session : CommandSession):
 		await rss_update_blog(session)
 
 	elif op == '调试':
-		v = get_articles(author)
+		articles = parser.get_articles(author)
 
-		if not v:
+		if not articles:
 			s = '没有找到文章'
 		
 		else:
-			art = v[0]
+			art = articles[0]
 
-			s = f'最新文章如下：\n\n' + generate_article_info(art)
+			s = f'最新文章如下：\n\n' + parser.generate_article_info(art)
 
 		# print('test')
 		

@@ -113,6 +113,20 @@ def generate_blog_info(o : Blog) -> str:
 	
 	return '\n'.join(v)
 
+def generate_blog_info(o : Dict[str, Any]) -> str:
+	'''
+	对给定的博客生成博客信息
+	'''
+	v = []
+
+	v.append(f'地址：{o["link"]}')
+	v.append(f'标题：{o["title"]}')
+	
+	if 'subtitle' in o and o['subtitle']:
+		v.append(f'副标题：{o["subtitle"]}')
+	
+	return '\n'.join(v)
+
 
 def get_articles(feed_url : str) -> List[Article]:
 	'''

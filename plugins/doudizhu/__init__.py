@@ -7,8 +7,8 @@ from nonebot.message import MessageSegment as ms
 
 from nonebot.plugin import on_plugin
 
-import plugins.tools as tools
-from plugins.tools import send_group_message, send_private_message
+import plugins.toolkit as toolkit
+from plugins.toolkit.message import send_group_message, send_private_message, auto_reply
 
 import random, math
 

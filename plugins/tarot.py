@@ -7,7 +7,8 @@ from nonebot.message import MessageSegment as ms
 
 import time, random, datetime
 
-from plugins.tools import local_image
+import plugins.toolkit as toolkit
+from plugins.toolkit.image import local_image
 
 major_tarot = [
     ('愚者', 'The Fool', ('憧憬自然的地方，毫无目的地前行，喜欢尝试挑战新鲜事物，四处流浪', '冒险的行动，追求可能性，重视梦想，无视物质的损失，离开家园，过于信赖别人，为出外旅行而烦恼')),
