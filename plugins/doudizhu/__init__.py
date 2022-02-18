@@ -7,8 +7,9 @@ from nonebot.message import MessageSegment as ms
 
 from nonebot.plugin import on_plugin
 
-import plugins.toolkit as toolkit
-from plugins.toolkit.message import send_group_message, send_private_message, auto_reply
+import toolkit
+from toolkit.message import send_group_message, send_private_message, auto_reply
+# from toolkit.cq import get_group_card
 
 import random, math
 
@@ -1318,7 +1319,7 @@ async def ob(session):
     s = s + '各位玩家的手牌如下：'
     for i in g.tbl:
         name = get_name(group_id, i)
-        card = await tools.get_group_card(group_id, i, subst = True)
+        card = await toolkit.cq.get_group_card(group_id, i, subst = True)
 
         t = name
         if card != name:

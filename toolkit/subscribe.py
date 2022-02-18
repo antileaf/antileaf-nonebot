@@ -65,6 +65,8 @@ class Subscribe:
 		
 		self.details[author][key] = value
 
+		self.database.commit()
+
 		return True
 
 	

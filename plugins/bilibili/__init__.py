@@ -7,9 +7,9 @@ from nonebot.message import MessageSegment as ms
 
 from nonebot.plugin import on_plugin
 
-import plugins.toolkit as toolkit
-from plugins.toolkit.message import send_group_message, send_private_message, auto_reply
-from plugins.toolkit.cq import get_nickname, get_group_name
+import toolkit
+from toolkit.message import send_group_message, send_private_message, auto_reply
+from toolkit.cq import get_nickname, get_group_name
 
 
 bot = nonebot.get_bot()

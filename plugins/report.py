@@ -5,8 +5,8 @@ from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
 from nonebot.message import MessageSegment as ms
 
-import plugins.tools as tools
-from plugins.tools import send_group_message, send_private_message
+import toolkit
+from toolkit.message import send_group_message, send_private_message
 
 bot = nonebot.get_bot()
 
@@ -20,10 +20,10 @@ async def report(session):
         card, nick, group = '', '', ''
 
         if group_id:
-            card = await tools.get_group_card(group_id, user_id)
-            group = await tools.get_group_name(group_id)
+            card = await toolkit.cq.get_group_card(group_id, user_id)
+            group = await toolkit.cq.get_group_name(group_id)
         
-        nick = await tools.get_nickname(user_id)
+        nick = await toolkit.cq.get_nickname(user_id)
 
         s = '收到 ' + nick
 

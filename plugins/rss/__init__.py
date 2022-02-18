@@ -10,10 +10,9 @@ from nonebot.plugin import on_plugin
 
 import time, asyncio
 
-import plugins.toolkit as toolkit
-from plugins.toolkit.subscribe import Subscribe
-from plugins.toolkit.message import send_group_message, send_private_message, auto_reply
-from plugins.toolkit.cq import get_nickname, get_group_name
+import toolkit
+from toolkit.message import send_group_message, send_private_message, auto_reply
+from toolkit.cq import get_nickname, get_group_name
 
 from . import parser
 # from .parser import Article, get_articles, generate_article_info, generate_blog_info
@@ -48,7 +47,7 @@ by AntiLeaf
 '''
 
 
-subsc = Subscribe('rss')
+subsc = toolkit.subscribe.Subscribe('rss')
 
 @on_plugin('loading')
 async def you_will_never_fade_away(): # awake
@@ -143,10 +142,7 @@ async def rss_add_author(session : CommandSession):
 	feed_url = session.state['link']
 	blog = parser.get_blog(feed_url)
 
-	subsc.update_detail(author, 'feed_url', feed_url)
-	subsc.update_detail(author, 'title', blog.title)
-	subsc.update_detail(author, 'link', blog.link)
-	subsc.update_detail(author, 'subtitle', blog.subtitle)
+	subsc.set_detail(author, {'feed_url' : feed_url, 'title' : blog.title, 'link' : blog.link, 'subtitle' : blog.subtitle})
 
 	await auto_reply(session, f'添加成功！\n作者：{author}\tRSS 地址：{session.state["link"]}')
 

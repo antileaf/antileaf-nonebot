@@ -6,7 +6,7 @@ from nonebot import permission as perm
 
 from nonebot.plugin import on_plugin
 
-from plugins.tools import send_private_message
+# from plugins.toolkit import send_private_message
 
 from .tt import *
 

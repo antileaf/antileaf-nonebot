@@ -38,10 +38,13 @@ class Database:
 			del self.tbl[key]
 	
 	def fetch(self):
-		pk.load(self.name)
+		temp = pk.load(self.name)
+
+		if temp:
+			self.tbl = copy.deepcopy(temp)
 
 	def commit(self):
-		pk.save(self.name, self)
+		pk.save(self.name, self.tbl)
 
 
 database = dict() # Dict[str, Database]

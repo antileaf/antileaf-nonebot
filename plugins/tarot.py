@@ -7,8 +7,8 @@ from nonebot.message import MessageSegment as ms
 
 import time, random, datetime
 
-import plugins.toolkit as toolkit
-from plugins.toolkit.image import local_image
+import toolkit
+# from toolkit.image import local_image
 
 major_tarot = [
     ('愚者', 'The Fool', ('憧憬自然的地方，毫无目的地前行，喜欢尝试挑战新鲜事物，四处流浪', '冒险的行动，追求可能性，重视梦想，无视物质的损失，离开家园，过于信赖别人，为出外旅行而烦恼')),
@@ -49,7 +49,7 @@ async def single_tarot(session):
 
     s = '你抽到了： %d %s %s %s\n' % (i, *major_tarot[i][:2], ('正位', '逆位')[j])
 
-    s = s + local_image('tarot/%s%s.png' % (major_tarot[i][0], '_rev' if j else '')) + '\n'
+    s = s + toolkit.image.local_image('tarot/%s%s.png' % (major_tarot[i][0], '_rev' if j else '')) + '\n'
 
     s = s + '释义：%s' % major_tarot[i][2][j]
 
