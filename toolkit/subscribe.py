@@ -188,6 +188,16 @@ class Subscribe:
 		
 		return res
 	
+	def get_details(self, author : str) -> Optional[Dict[str, Any]]:
+		'''
+		不会自动 commit，所以不要用这个方法修改
+		'''
+
+		if not self.check_author(author):
+			return None
+		
+		return self.details[author]
+	
 	
 	def get_subscribed_users(self, author : str) -> List[int]:
 		if not self.check_author(author):
@@ -206,7 +216,7 @@ class Subscribe:
 		subsc = []
 		
 		for author in self.authors:
-			if user_id in author:
+			if user_id in self.sub_users[author]:
 				subsc.append(author)
 		
 		return subsc
@@ -215,7 +225,7 @@ class Subscribe:
 		subsc = []
 
 		for author in self.authors:
-			if group_id in author:
+			if group_id in self.sub_groups[author]:
 				subsc.append(author)
 		
 		return subsc

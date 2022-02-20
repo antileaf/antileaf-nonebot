@@ -22,14 +22,17 @@ class Article:
 		self.published = published
 
 
-def parse_blog(feed : feedparser.util.FeedParserDict) -> Blog:
+def parse_blog(feed : feedparser.util.FeedParserDict) -> Optional[Blog]:
 	info = feed['feed']
 
-	link = info['link']
-	title = info['title']
-	subtitle = info['subtitle'] if 'subtitle' in info else ''
-
-	return Blog(link, title, subtitle)
+	try:
+		link = info['link']
+		title = info['title']
+		subtitle = info['subtitle'] if 'subtitle' in info else ''
+	except:
+		return None
+	else:
+		return Blog(link, title, subtitle)
 
 
 def handle_summary(summary : str):

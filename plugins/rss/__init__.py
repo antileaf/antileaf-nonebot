@@ -34,7 +34,7 @@ by AntiLeaf
 订阅者/subscribers/list + <作者>：查询某位作者的订阅者列表
 详情/detail + <作者>：查询某位作者的博客信息（地址、标题、副标题）
 我的/my/mine/查询：查询你或者本群（取决于你在何处使用命令）的订阅列表
-订阅/关注/sucsc/watch + <作者>：订阅某位作者
+订阅/关注/subsc/watch + <作者>：订阅某位作者
 取消/取关/unsubsc/stop + <作者>：取消订阅某位作者
 最新/动态/new/newest + <作者> [ + <数量>]：查询某位作者的最新文章，如果不给出数量则只显示最新一条
 
@@ -61,7 +61,7 @@ async def send_notice(author : str, art : parser.Article):
 	groups = subsc.get_subscribed_groups(author)
 
 	msg = f'{author} 发表了一篇新文章！\n\n' + parser.generate_article_info(art) \
-		+ '\n\n此消息来自于 AntiLeaf-Bot 的 RSS 订阅功能，如不想再收到此通知，可以随时取消订阅\n\
+		+ f'\n\n此消息来自于 AntiLeaf-Bot 的 RSS 订阅功能，如不想再收到此通知，可以随时取消订阅\n\
 如需获取帮助，请使用\"%help rss\"指令'
 
 	for user_id in users:
@@ -75,16 +75,22 @@ async def send_notice(author : str, art : parser.Article):
 async def work():
 	# await send_private_message(bot_author, 'starts work!')
 
+	flag = False
+
 	for author in subsc.get_authors():
-		v = parser.get_articles(subsc.get_detail(author, 'feed'))
+		v = parser.get_articles(subsc.get_detail(author, 'feed_url'))
 
 		for art in v:
 			if is_new(art.published):
 				await send_notice(author, art)
+
+				flag = True
 			# else:
 			# 	await send_private_message(bot_author, str(art.published) + ' ' + str(last_checked))
 
 	hell_its_about_time()
+
+	return flag
 	
 	# await send_private_message(bot_author, 'end work!')
 	# TODO: 记录一条 log
@@ -142,6 +148,10 @@ async def rss_add_author(session : CommandSession):
 	feed_url = session.state['link']
 	blog = parser.get_blog(feed_url)
 
+	if not blog:
+		await auto_reply(session, f'RSS 地址无效，请重试')
+		return
+
 	subsc.set_detail(author, {'feed_url' : feed_url, 'title' : blog.title, 'link' : blog.link, 'subtitle' : blog.subtitle})
 
 	await auto_reply(session, f'添加成功！\n作者：{author}\tRSS 地址：{session.state["link"]}')
@@ -183,7 +193,7 @@ async def rss_user_subscribe(session : CommandSession):
 		await session.send(f'作者 {author} 不存在')
 		return
 
-	res = subsc.add_user(user_id, author)
+	res = subsc.user_subscribe(user_id, author)
 
 	await session.send('订阅成功' if res else f'你已经订阅过作者 {author} 了')
 
@@ -468,6 +478,15 @@ async def rss_work(session : CommandSession):
 
 		await auto_reply(session, s)
 	
+	elif op == '手动':
+		if not user_id in rss_superusers:
+			await auto_reply(session, '该功能只有超级用户才可以使用')
+
+		else:
+			flag = await work()
+
+			await auto_reply(session,'flag = ' + str(flag))
+	
 	else:
 		await auto_reply(session, '指令有误，如需帮助请使用\"%rss help\"')
 
@@ -484,7 +503,8 @@ alias_table = [
 	('最新', ('newest', 'new', 'recent', '新', '最新动态', '最新文章', '近期文章', '查询动态')),
 	('帮助', ('help')),
 	('更新', ('update', 'refresh', '刷新')),
-	('调试', ('debug', 'direct'))
+	('调试', ('debug', 'direct', 'test')),
+	('手动', ('manually'))
 ]
 
 @rss_work.args_parser
