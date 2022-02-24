@@ -151,7 +151,7 @@ def generate_article_info(o : Article) -> str:
 	if o.link:
 		v.append(f'地址：{o.link}')
 	if o.published:
-		v.append(f'发布时间：{str(o.published)}')
+		v.append(f'发布时间：{str(o.published + datetime.timedelta(hours = 8))}') # UTC + 8
 	if o.summary:
 		v.append(f'摘要：{o.summary}')
 	if o.tags:

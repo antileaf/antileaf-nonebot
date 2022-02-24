@@ -164,19 +164,23 @@ def handle(s : str): # 返回处理好的一手牌，或者'error'
         
     elif len(s) == 6:
         if s[1] == s[2] and s[2] == s[3] and s[3] == s[4]:
-            s = ''.join(list(s)[1:] + list(s)[:1])
+            s = s[1:] + s[:1]
         if s[2] == s[3] and s[3] == s[4] and s[4] == s[5]:
-            s = ''.join(list(s)[2:] + list(s)[:2])
+            s = s[2:] + s[:2]
         if s[0] == s[1] and s[1] == s[2] and s[2] == s[3]:
             return Combination(s[0], s[4] + s[5], 'quadruple2')
     
     elif len(s) == 8:
         for i in range(2):
             if s[0] == s[1] and s[1] != s[2]:
-                s = ''.join(list(s)[2:] + list(s)[:2])
+                s = s[2:] + s[:2]
         
         if s[0] == s[1] and s[1] == s[2] and s[2] == s[3] and s[4] == s[5] and s[6] == s[7]:
             return Combination(s[0], s[4:], 'quadruple22')
+        
+    s = list(s)
+    s.sort(key = lambda x : '34567891JQKA2鬼王'.find(x))
+    s = ''.join(s)
         
     if s in '34567891JQKA' and len(s) >= 5:
         return Combination(s, '', 'serial')
