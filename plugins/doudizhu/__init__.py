@@ -112,6 +112,9 @@ class Combination:
                 return 'bigger'
             return 'different type'
         
+        if 'serial' in self.type and len(self.major) != len(other.major):
+            return 'different type'
+        
         if compare(self.major[0], other.major[0]):
             return 'bigger'
         else:
