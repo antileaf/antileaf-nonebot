@@ -148,7 +148,7 @@ class Subscribe:
 		if not group_id in self.sub_groups[author]:
 			return 0
 		
-		self.sub_users[author].remove(group_id)
+		self.sub_groups[author].remove(group_id)
 
 		self.database.commit()
 

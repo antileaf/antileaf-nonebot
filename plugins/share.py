@@ -5,6 +5,7 @@ from nonebot import on_command, CommandSession, message
 from nonebot import permission as perm
 
 import json, re, time
+import threading
 
 bot = nonebot.get_bot()
 
@@ -26,6 +27,7 @@ async def link_handle(session):
                 while not text[i] in ['?', ',', ';', ' ']:
                     url += text[i]
                     i += 1
+                
                 
                 await bot.send_group_msg(group_id = session.group_id, message = url)
                 return

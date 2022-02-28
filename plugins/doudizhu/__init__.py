@@ -12,6 +12,7 @@ from toolkit.message import send_group_message, send_private_message, auto_reply
 # from toolkit.cq import get_group_card
 
 import random, math
+import datetime
 
 from .statistics import *
 
@@ -310,10 +311,22 @@ class Game:
 
 games = dict()
 
+last_time = datetime.datetime.now()
+
+def update_time():
+    global last_time
+
+    last_time = datetime.datetime.now()
+
+def check_time() -> bool:
+    return last_time + datetime.timedelta(minutes = 5) <= datetime.datetime.now()
+
 
 @on_plugin('loading')
 def initialize():
     load_stat()
+
+    update_time()
 
 
 @on_command('开始游戏', aliases = ('开始', '开局', 'ks'), only_to_me = False, permission = perm.GROUP)
@@ -354,6 +367,8 @@ async def kaiju(session):
     s = s + '\n' + ms.at(g.cur_player) + ' 抽到了明牌' + completed(card) + '，请决定是否叫地主'
     await session.send(s)
 
+    update_time()
+
 
 @on_command('结束游戏', aliases = ('结束', 'js'), only_to_me = False, permission = perm.GROUP)
 async def jieshu(session):
@@ -364,8 +379,8 @@ async def jieshu(session):
     #     await session.send('请在群聊中使用斗地主功能')
     #     return
     
-    if user_id != 1094054222:
-        await send_group_message(session, '只有绿可以使用此功能')
+    if not check_time() and user_id != 1094054222:
+        await send_group_message(session, '无操作 5 分钟后才能使用此功能')
         return
 
     if not group_id in games:
@@ -375,6 +390,8 @@ async def jieshu(session):
     games[group_id].clear()
     games.pop(group_id)
     await send_group_message(session, '结束成功')
+
+    update_time()
 
 
 @on_command('改名', aliases = ('rename', 'gm'), only_to_me = False, permission = perm.GROUP)
@@ -565,6 +582,8 @@ async def chongzhi(session):
     clear_group(group_id)
 
     await send_group_message(session, '重置成功')
+
+    update_time()
     
 
 @on_command('排行榜', aliases = ('ranklist', 'rank', '排名', '榜', 'ph'), only_to_me = False, permission = perm.GROUP)
@@ -651,6 +670,8 @@ async def jiaru(session):
 
     await send_group_message(session, s)
 
+    update_time()
+
 
 @on_command('退出游戏', aliases = ('退出', '下桌', 'tc', 'xz'), only_to_me = False, permission = perm.GROUP)
 async def tuichu(session):
@@ -681,6 +702,8 @@ async def tuichu(session):
 
     if not g.players:
         games.pop(group_id)
+    
+    update_time()
 
 
 @on_command('叫地主', aliases = ('叫', 'j', 'jdz'), only_to_me = False, permission = perm.GROUP)
@@ -723,6 +746,9 @@ async def jiaodizhu(session):
     g.state = 'qdz'
     g.next_player()
     await session.send('请 ' + ms.at(g.cur_player) + ' 选择是否抢地主')
+
+    update_time()
+
 
 @on_command('不叫', aliases = ('bujiao', 'bj'), only_to_me = False, permission = perm.GROUP)
 async def bujiao(session):
@@ -778,6 +804,8 @@ async def bujiao(session):
         return
 
     await session.send('请 ' + ms.at(g.cur_player) + ' 选择是否叫地主')
+
+    update_time()
 
 
 @on_command('抢地主', aliases = ('抢', 'qiang', 'qdz', 'q'), only_to_me = False, permission = perm.GROUP)
@@ -843,6 +871,8 @@ async def qiangdizhu(session):
         g.cur_player = g.last_player = dizhu
         g.cur = g.players.index(dizhu)
 
+        update_time()
+
         return
 
     g.next_player()
@@ -850,6 +880,8 @@ async def qiangdizhu(session):
         g.next_player()
 
     await session.send('请 ' + ms.at(g.cur_player) + ' 选择是否抢地主')
+
+    update_time()
 
 
 @on_command('不抢', aliases = ('buqiang', 'bq'), only_to_me = False, permission = perm.GROUP)
@@ -912,6 +944,8 @@ async def buqiang(session):
         g.cur_player = g.last_player = dizhu
         g.cur = g.players.index(dizhu)
 
+        update_time()
+
         return
 
     g.next_player()
@@ -919,6 +953,8 @@ async def buqiang(session):
         g.next_player()
 
     await session.send('请 ' + ms.at(g.cur_player) + ' 选择是否抢地主')
+
+    update_time()
 
 
 @on_command('出', aliases = ('出牌', 'chu', 'c'), only_to_me = False, permission = perm.GROUP)
@@ -977,6 +1013,8 @@ async def chu(session):
         if t != 'bigger':
             return
     
+    update_time()
+
     if not g.first_cnt:
         g.first_cnt = len(s)
         
@@ -1131,6 +1169,8 @@ async def buchu(session):
     if g.last_player == user_id:
         await send_group_message(session, '现在不能过牌')
         return
+
+    update_time()
     
     g.next_player()
 
@@ -1186,6 +1226,8 @@ async def mingpai(session):
     s = '明牌成功，最终分数翻倍！剩余手牌如下：\n' + g.tbl[user_id].get_hand()
 
     await send_group_message(session, s)
+
+    update_time()
 
 
 @on_command('状态', aliases = ('zhuangtai', 'stat', 'status', 'zt'), only_to_me = False, permission = perm.GROUP)
