@@ -9,6 +9,5 @@ from nonebot.message import MessageSegment as ms
 
 def local_image(file_name : str):
     file_name = '/home/ubuntu/antileaf-nonebot/images/' + file_name
-    # TODO: 这太逆天了，有空改成绝对路径
 
-    return ms.image(file = file_name)
+    return ms.image(file = 'file://' + file_name)
