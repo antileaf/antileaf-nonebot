@@ -11,6 +11,7 @@ import toolkit
 from toolkit.message import send_group_message, send_private_message, auto_reply
 # from toolkit.cq import get_group_card
 
+from typing import *
 import random, math
 import datetime
 
@@ -25,7 +26,7 @@ bot = nonebot.get_bot()
 # 没有card类，用一个字符串取代之
 # 方便起见，写一个类用于保存一手牌
 
-def completed(s):
+def completed(s : str) -> str:
     t = ''
     for c in s:
         t += c
@@ -33,7 +34,7 @@ def completed(s):
             t += '0'
     return t
 
-def simplified(s):
+def simplified(s : str) -> str:
     t = ''
     for i in range(len(s)):
         if i:
@@ -1380,7 +1381,7 @@ async def ob(session):
         s = s + '\n' + t + '：' + g.tbl[i].get_hand() + '，共%d张' % len(g.tbl[i].hand)
     
     if g.state == 'jdz' or g.state == 'qdz':
-        s = s + '\n' + '底牌是：' + ' '.join(g.deck)
+        s = s + '\n' + '底牌是：' + completed(' '.join(g.deck))
     
     if not session.event.group_id:
         await session.send(s)
