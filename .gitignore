@@ -2,3 +2,4 @@
 /plugins/__pycache__/
 /plugins/doudizhu/__pycache__/
 /plugins/test/__pycache__/
+*.pyc
